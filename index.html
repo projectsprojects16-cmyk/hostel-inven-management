@@ -1,1 +1,152 @@
-<h1>Login Page</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HR App Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f766e">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f766e, #115e59);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      background: #fff;
+      width: 100%;
+      max-width: 380px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .login-card h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #0f766e;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #0f766e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .msg {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <h2>Employee Login</h2>
+
+  <label>Emp ID</label>
+  <input type="text" id="empId" placeholder="Enter Emp ID">
+
+  <label>Password</label>
+  <input type="password" id="password" placeholder="Enter Password">
+
+  <button onclick="login()">Login</button>
+
+  <div id="msg" class="msg"></div>
+</div>
+
+<script>
+  function login() {
+    const empId = document.getElementById("empId").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (!empId || !password) {
+      msg.innerHTML = "Emp ID & Password required";
+      msg.className = "msg error";
+      return;
+    }
+
+    const users = JSON.parse(localStorage.getItem("users")) || {};
+
+    // First time registration
+    if (!users[empId]) {
+      users[empId] = password;
+      localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("loggedInUser", empId);
+
+      msg.innerHTML = "Emp ID registered successfully";
+      msg.className = "msg success";
+
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 800);
+      return;
+    }
+
+    // Existing user login
+    if (users[empId] === password) {
+      localStorage.setItem("loggedInUser", empId);
+      window.location.href = "dashboard.html";
+    } else {
+      msg.innerHTML = "Invalid password";
+      msg.className = "msg error";
+    }
+  }
+
+  // Auto redirect if already logged in
+  if (localStorage.getItem("loggedInUser")) {
+    window.location.href = "dashboard.html";
+  }
+
+  // Service Worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
+</body>
+</html>
