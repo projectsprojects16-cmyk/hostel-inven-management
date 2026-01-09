@@ -1,1 +1,133 @@
-<h1>Dashboard</h1><a href='hostel.html'>Hostel</a> | <a href='inventory.html'>Inventory</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - HR App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f766e">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+    }
+
+    header {
+      background: #0f766e;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    header button {
+      background: #ef4444;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 30px;
+      color: #0f766e;
+      font-weight: bold;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card h3 {
+      margin: 0;
+      color: #0f766e;
+      font-size: 20px;
+    }
+
+    .card p {
+      margin-top: 8px;
+      color: #475569;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>Emp ID: <span id="empId"></span></h2>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+  <div class="title">List of Hostels</div>
+
+  <div class="card" onclick="goHostel()">
+    <h3>Hostel Management</h3>
+    <p>Hostel entry form & records</p>
+  </div>
+
+  <div class="card" onclick="goInventory()">
+    <h3>Inventory Management</h3>
+    <p>Inventory entry form & records</p>
+  </div>
+</div>
+
+<script>
+  // Login check
+  const user = localStorage.getItem("loggedInUser");
+  if (!user) {
+    window.location.href = "index.html";
+  } else {
+    document.getElementById("empId").innerText = user;
+  }
+
+  function goHostel() {
+    window.location.href = "hostel.html";
+  }
+
+  function goInventory() {
+    window.location.href = "inventory.html";
+  }
+
+  function logout() {
+    localStorage.removeItem("loggedInUser");
+    window.location.href = "index.html";
+  }
+
+  // Service Worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
+</body>
+</html>
