@@ -37,9 +37,10 @@ button.submit{
 button.submit:disabled{background:#94a3b8}
 .info{margin-top:10px;color:#b91c1c;font-size:14px}
 .success{
-  display:none;background:#16a34a;color:#fff;
+  background:#16a34a;color:#fff;
   padding:10px;border-radius:8px;
-  margin-bottom:15px;text-align:center;font-weight:bold
+  margin-bottom:15px;text-align:center;font-weight:bold;
+  display:none
 }
 </style>
 </head>
@@ -112,18 +113,19 @@ button.submit:disabled{background:#94a3b8}
 const loggedInUser=localStorage.getItem("loggedInUser");
 if(!loggedInUser) location.href="index.html";
 
-/* SCRIPT */
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbzMjMSDeI5HBNPBNQMQrW-RGNjkfMWH5QyAOx-YvDUC8M5NPum3V7tgipZi2RXj1pqc/exec";
 
-const form=formEl=document.getElementById("form");
+const successMsg=document.getElementById("successMsg");
 const submitBtn=document.getElementById("submitBtn");
 const info=document.getElementById("info");
-const successMsg=document.getElementById("successMsg");
 
 let records=JSON.parse(localStorage.getItem("hostelRecords"))||[];
 let editIndex=-1;
 
-/* IMAGE RESIZE */
+/* Hide success when new Emp ID typing */
+empId.addEventListener("input",()=>successMsg.style.display="none");
+
+/* Resize image to 2×4 */
 function resizeImage(file,w=200,h=400){
   return new Promise(r=>{
     const i=new Image();
@@ -137,11 +139,10 @@ function resizeImage(file,w=200,h=400){
   });
 }
 
-/* PREVIEW */
 cnicPic.onchange=async()=>cnicPreview.src=await resizeImage(cnicPic.files[0]);
 empCardPic.onchange=async()=>empPreview.src=await resizeImage(empCardPic.files[0]);
 
-/* EMP ID ENTER */
+/* Emp ID Enter */
 empId.addEventListener("keydown",e=>{
   if(e.key==="Enter"){e.preventDefault();loadExisting();}
 });
@@ -160,6 +161,7 @@ function loadExisting(){
     joinDate.value=r.joinDate;
     cnicPreview.src=r.cnicPic;
     empPreview.src=r.empCardPic;
+
     cnicPic.required=false;
     empCardPic.required=false;
     submitBtn.disabled=true;
@@ -171,7 +173,7 @@ function loadExisting(){
   }
 }
 
-/* VALIDATION */
+/* Validation */
 form.addEventListener("input",()=>{
   if(editIndex>-1){
     submitBtn.disabled=!leaveDate.value;
@@ -186,7 +188,7 @@ form.addEventListener("input",()=>{
   }
 });
 
-/* SUBMIT */
+/* Submit */
 form.onsubmit=async e=>{
   e.preventDefault();
   submitBtn.disabled=true;
@@ -213,14 +215,9 @@ form.onsubmit=async e=>{
   }
 
   localStorage.setItem("hostelRecords",JSON.stringify(records));
-
-  try{
-    await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify(records.at(-1))});
-  }catch(e){}
+  try{await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify(records.at(-1))});}catch(e){}
 
   successMsg.style.display="block";
-  setTimeout(()=>successMsg.style.display="none",3000);
-
   form.reset();
   submitBtn.disabled=true;
   editIndex=-1;
