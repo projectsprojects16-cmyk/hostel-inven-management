@@ -1,1 +1,207 @@
-<h1>Hostel Export</h1><p>Search, Date Range, CSV / PDF / Images</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hostel Export</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f1f5f9;
+}
+header{
+  background:#0f766e;
+  color:#fff;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header h2{margin:0;font-size:18px;}
+header button{
+  background:#fff;
+  color:#0f766e;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.container{
+  padding:15px;
+}
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+label{
+  font-weight:bold;
+  display:block;
+  margin-top:12px;
+}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+.actions{
+  margin-top:20px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.actions button{
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  font-size:15px;
+  cursor:pointer;
+  color:#fff;
+}
+.csv{background:#0f766e;}
+.pdf{background:#2563eb;}
+.img{background:#7c3aed;}
+.record{
+  border:1px solid #e5e7eb;
+  border-radius:8px;
+  padding:10px;
+  margin-top:10px;
+}
+.record img{
+  width:100%;
+  max-height:150px;
+  margin-top:5px;
+  border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>Hostel Export</h2>
+  <button onclick="goBack()">Back</button>
+</header>
+
+<div class="container">
+<div class="card">
+
+<label>Search by Emp ID</label>
+<input type="text" id="searchEmp" placeholder="Enter Emp ID">
+
+<label>From Date & Time</label>
+<input type="datetime-local" id="fromDate">
+
+<label>To Date & Time</label>
+<input type="datetime-local" id="toDate">
+
+<div class="actions">
+  <button class="csv" onclick="exportCSV()">Export to CSV</button>
+  <button class="pdf" onclick="exportPDF()">Export to PDF</button>
+  <button class="img" onclick="exportImages()">Export Pictures</button>
+</div>
+
+<div id="preview"></div>
+
+</div>
+</div>
+
+<script>
+if(!localStorage.getItem("loggedInUser")){
+  window.location.href="index.html";
+}
+
+const records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
+
+function filteredRecords(){
+  const emp = searchEmp.value.trim();
+  const from = fromDate.value ? new Date(fromDate.value) : null;
+  const to = toDate.value ? new Date(toDate.value) : null;
+
+  return records.filter(r=>{
+    if(emp && r.empId !== emp) return false;
+    const t = new Date(r.time);
+    if(from && t < from) return false;
+    if(to && t > to) return false;
+    return true;
+  });
+}
+
+function exportCSV(){
+  const data = filteredRecords();
+  if(!data.length){ alert("No data found"); return; }
+
+  const headers = [
+    "Hostel Name","Emp ID","Emp Name","Department","Sub Department",
+    "Mobile","Address","Join Date","Leave Date","Time"
+  ];
+
+  let csv = headers.join(",") + "\n";
+
+  data.forEach(r=>{
+    csv += [
+      r.hostelName,r.empId,r.empName,r.department,r.subDepartment,
+      r.mobile,r.address,r.joinDate,r.leaveDate,r.time
+    ].join(",") + "\n";
+  });
+
+  download(csv,"hostel_export.csv","text/csv");
+}
+
+function exportPDF(){
+  const data = filteredRecords();
+  if(!data.length){ alert("No data found"); return; }
+
+  const r = data[0];
+  let html = `
+  <h2>Hostel Record</h2>
+  <p><b>Emp ID:</b> ${r.empId}</p>
+  <p><b>Name:</b> ${r.empName}</p>
+  <p><b>Hostel:</b> ${r.hostelName}</p>
+  <p><b>Department:</b> ${r.department}</p>
+  <p><b>Sub Department:</b> ${r.subDepartment}</p>
+  <p><b>Mobile:</b> ${r.mobile}</p>
+  <p><b>Address:</b> ${r.address}</p>
+  <p><b>Join Date:</b> ${r.joinDate}</p>
+  <p><b>Leave Date:</b> ${r.leaveDate}</p>
+  <img src="${r.cnicPic}" width="300"><br><br>
+  <img src="${r.empCardPic}" width="300">
+  `;
+
+  const win = window.open("");
+  win.document.write(html);
+  win.print();
+}
+
+function exportImages(){
+  const data = filteredRecords();
+  if(!data.length){ alert("No data found"); return; }
+
+  const r = data[0];
+  download(r.cnicPic, `${r.empId}_CNIC.png`);
+  download(r.empCardPic, `${r.empId}_EMP_CARD.png`);
+}
+
+function download(content, filename, type){
+  const a = document.createElement("a");
+  const blob = content.startsWith("data:")
+    ? content
+    : new Blob([content],{type:type});
+  a.href = content.startsWith("data:") ? content : URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+function goBack(){
+  window.location.href="hostel.html";
+}
+</script>
+
+</body>
+</html>
