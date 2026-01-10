@@ -1,21 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hostel Export</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f1f5f9;
+}
+header{
+  background:#0f766e;
+  color:#fff;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header h2{margin:0;font-size:18px;}
+header button{
+  background:#fff;
+  color:#0f766e;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.container{ padding:15px; }
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+label{
+  font-weight:bold;
+  display:block;
+  margin-top:12px;
+}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+.actions{
+  margin-top:20px;
+  display:grid;
+  gap:10px;
+}
+.actions button{
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  font-size:15px;
+  cursor:pointer;
+  color:#fff;
+}
+.csv{background:#0f766e;}
+.pdf{background:#2563eb;}
+.img{background:#7c3aed;}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>Hostel Export</h2>
+  <button onclick="goBack()">Back</button>
+</header>
+
+<div class="container">
+<div class="card">
+
+<label>Search by Emp ID</label>
+<input type="text" id="searchEmp" placeholder="Enter Emp ID">
+
+<label>From Date & Time</label>
+<input type="datetime-local" id="fromDate">
+
+<label>To Date & Time</label>
+<input type="datetime-local" id="toDate">
+
+<div class="actions">
+  <button class="csv" onclick="exportCSV()">Export CSV</button>
+  <button class="pdf" onclick="exportPDF()">Export PDF</button>
+  <button class="img" onclick="exportImages()">Export Images</button>
+</div>
+
+</div>
+</div>
+
 <script>
+// 🔐 Login protection
 if(!localStorage.getItem("loggedInUser")){
   window.location.href="index.html";
 }
 
 const records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
 
+// ✅ CORRECT FILTER (USING r.time)
 function filteredRecords(){
   const emp = document.getElementById("searchEmp").value.trim();
-  const from = fromDate.value ? new Date(fromDate.value) : null;
-  const to = toDate.value ? new Date(toDate.value) : null;
+  const fromVal = document.getElementById("fromDate").value;
+  const toVal = document.getElementById("toDate").value;
+
+  const from = fromVal ? new Date(fromVal) : null;
+  const to = toVal ? new Date(toVal) : null;
 
   return records.filter(r=>{
     if(emp && r.empId !== emp) return false;
 
-    const t = new Date(r.time); // ✅ FIXED HERE
-    if(from && t < from) return false;
-    if(to && t > to) return false;
+    const recordTime = new Date(r.time);
+    if(from && recordTime < from) return false;
+    if(to && recordTime > to) return false;
 
     return true;
   });
@@ -27,7 +129,7 @@ function exportCSV(){
   if(!data.length){ alert("No data found"); return; }
 
   const headers = [
-    "Hostel Name","Emp ID","Emp Name","Department","Sub Department",
+    "Hostel","Emp ID","Name","Department","Sub Dept",
     "Mobile","Address","Join Date","Leave Date","Saved Time"
   ];
 
@@ -69,7 +171,7 @@ function exportPDF(){
   <p><b>Address:</b> ${r.address}</p>
   <p><b>Join Date:</b> ${r.joinDate}</p>
   <p><b>Leave Date:</b> ${r.leaveDate || "-"}</p>
-  <p><b>Saved Time:</b> ${r.time}</p>
+  <p><b>Saved At:</b> ${r.time}</p>
   <hr>
   <img src="${r.cnicPic}" width="300"><br><br>
   <img src="${r.empCardPic}" width="300">
@@ -92,10 +194,12 @@ function exportImages(){
 
 function download(content, filename, type){
   const a = document.createElement("a");
-  const blob = content.startsWith("data:")
-    ? content
-    : new Blob([content],{type:type});
-  a.href = content.startsWith("data:") ? content : URL.createObjectURL(blob);
+  if(content.startsWith("data:")){
+    a.href = content;
+  }else{
+    const blob = new Blob([content],{type:type});
+    a.href = URL.createObjectURL(blob);
+  }
   a.download = filename;
   a.click();
 }
@@ -104,3 +208,6 @@ function goBack(){
   window.location.href="hostel.html";
 }
 </script>
+
+</body>
+</html>
