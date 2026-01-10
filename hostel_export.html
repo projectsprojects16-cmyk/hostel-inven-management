@@ -36,7 +36,11 @@ header button{
   border-radius:10px;
   box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
-label{font-weight:bold;display:block;margin-top:12px;}
+label{
+  font-weight:bold;
+  display:block;
+  margin-top:12px;
+}
 input{
   width:100%;
   padding:10px;
@@ -56,17 +60,19 @@ button{
 }
 .csv{background:#0f766e;}
 .pdf{background:#2563eb;}
+
 .report{
   margin-top:20px;
   padding:15px;
-  border:1px solid #e5e7eb;
   border-radius:10px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
 }
 .report img{
   width:100%;
   max-width:300px;
   margin-top:10px;
-  border-radius:6px;
+  border-radius:8px;
 }
 </style>
 </head>
@@ -94,7 +100,7 @@ button{
 
 <button class="csv" onclick="exportCSV()">Export CSV</button>
 
-<div id="preview"></div>
+<div id="report"></div>
 
 </div>
 </div>
@@ -102,10 +108,12 @@ button{
 <script>
 /* ===== Login Protection ===== */
 if(!localStorage.getItem("loggedInUser")){
-  location.href="index.html";
+  window.location.href="index.html";
 }
 
 const loginUser = localStorage.getItem("loggedInUser");
+
+/* ===== Load Records ===== */
 const records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
 
 /* ===== Filter ===== */
@@ -117,43 +125,40 @@ function filteredRecords(){
   return records.filter(r=>{
     if(emp && r.empId !== emp) return false;
 
-    const t = new Date(r.time);
-    if(from && t < from) return false;
-    if(to && t > new Date(to.getTime()+86400000)) return false;
+    const d = new Date(r.joinDate);
+    if(from && d < from) return false;
+    if(to && d > to) return false;
 
     return true;
   });
 }
 
-/* ===== CSV ===== */
+/* ===== CSV EXPORT ===== */
 function exportCSV(){
   const data = filteredRecords();
   if(!data.length){ alert("No data found"); return; }
 
   let csv =
-"Hostel,Emp ID,Name,Department,Emergency Name,Relation,Mobile,Address,Join Date,Leave Date,Entered By,Time\n";
+"Entered By,Hostel,Emp ID,Name,Department,Mobile,Address,Join Date,Leave Date\n";
 
   data.forEach(r=>{
     csv += [
+      loginUser,
       r.hostelName,
       r.empId,
       r.empName,
       r.department,
-      r.emergencyName,
-      r.emergencyRelation,
       r.mobile,
       r.address,
       r.joinDate,
-      r.leaveDate || "",
-      loginUser,
-      r.time
+      r.leaveDate || ""
     ].join(",") + "\n";
   });
 
   download(csv,"hostel_export.csv","text/csv");
 }
 
-/* ===== PDF ===== */
+/* ===== PDF EXPORT ===== */
 function exportPDF(){
   const data = filteredRecords();
   if(!data.length){ alert("No data found"); return; }
@@ -161,29 +166,39 @@ function exportPDF(){
   const r = data[0];
 
   const html = `
-  <div style="font-family:Arial;padding:20px">
-    <h2 style="color:#0f766e">Hostel Record</h2>
-    <p><b>Emp ID:</b> ${r.empId}</p>
-    <p><b>Name:</b> ${r.empName}</p>
-    <p><b>Hostel:</b> ${r.hostelName}</p>
-    <p><b>Department:</b> ${r.department}</p>
-    <p><b>Emergency Contact:</b> ${r.emergencyName} (${r.emergencyRelation})</p>
-    <p><b>Mobile:</b> ${r.mobile}</p>
-    <p><b>Address:</b> ${r.address}</p>
-    <p><b>Join Date:</b> ${r.joinDate}</p>
-    <p><b>Leave Date:</b> ${r.leaveDate || "-"}</p>
-    <p><b>Entered By:</b> ${loginUser}</p>
-    <hr>
-    <h3>CNIC Picture</h3>
-    <img src="${r.cnicPic}" width="300"><br><br>
-    <h3>Employee Card</h3>
-    <img src="${r.empCardPic}" width="300">
-  </div>
+  <html>
+  <head>
+  <title>Hostel Report</title>
+  <style>
+    body{font-family:Arial;background:#f1f5f9;padding:20px}
+    .card{background:#fff;padding:20px;border-radius:10px}
+    h2{color:#0f766e}
+    img{width:300px;margin-top:10px;border-radius:8px}
+  </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Hostel Record</h2>
+      <p><b>Entered By:</b> ${loginUser}</p>
+      <p><b>Emp ID:</b> ${r.empId}</p>
+      <p><b>Name:</b> ${r.empName}</p>
+      <p><b>Hostel:</b> ${r.hostelName}</p>
+      <p><b>Department:</b> ${r.department}</p>
+      <p><b>Mobile:</b> ${r.mobile}</p>
+      <p><b>Address:</b> ${r.address}</p>
+      <p><b>Join Date:</b> ${r.joinDate}</p>
+      <p><b>Leave Date:</b> ${r.leaveDate || "-"}</p>
+      <hr>
+      <img src="${r.cnicPic}">
+      <img src="${r.empCardPic}">
+    </div>
+  </body>
+  </html>
   `;
 
-  const w = window.open("");
-  w.document.write(html);
-  w.print();
+  const win = window.open("");
+  win.document.write(html);
+  win.print();
 }
 
 /* ===== Download ===== */
@@ -197,7 +212,7 @@ function download(content, filename, type){
 
 /* ===== Back ===== */
 function goBack(){
-  location.href="hostel.html";
+  window.location.href="hostel.html";
 }
 </script>
 
