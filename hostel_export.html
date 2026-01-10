@@ -29,18 +29,14 @@ header button{
   font-weight:bold;
   cursor:pointer;
 }
-.container{ padding:15px; }
+.container{padding:15px;}
 .card{
   background:#fff;
   padding:15px;
   border-radius:10px;
   box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
-label{
-  font-weight:bold;
-  display:block;
-  margin-top:12px;
-}
+label{font-weight:bold;display:block;margin-top:12px;}
 input{
   width:100%;
   padding:10px;
@@ -78,7 +74,7 @@ input{
 <div class="card">
 
 <label>Search by Emp ID</label>
-<input type="text" id="searchEmp" placeholder="Enter Emp ID">
+<input type="text" id="searchEmp">
 
 <label>From Date & Time</label>
 <input type="datetime-local" id="fromDate">
@@ -96,44 +92,38 @@ input{
 </div>
 
 <script>
-// 🔐 Login protection
+/* ===== Login Protection ===== */
 if(!localStorage.getItem("loggedInUser")){
   window.location.href="index.html";
 }
 
+/* ===== Load Records ===== */
 const records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
 
-// ✅ CORRECT FILTER (USING r.time)
+/* ===== Filter Logic ===== */
 function filteredRecords(){
   const emp = document.getElementById("searchEmp").value.trim();
-  const fromVal = document.getElementById("fromDate").value;
-  const toVal = document.getElementById("toDate").value;
-
-  const from = fromVal ? new Date(fromVal) : null;
-  const to = toVal ? new Date(toVal) : null;
+  const from = fromDate.value ? new Date(fromDate.value) : null;
+  const to = toDate.value ? new Date(toDate.value) : null;
 
   return records.filter(r=>{
     if(emp && r.empId !== emp) return false;
 
-    const recordTime = new Date(r.time);
-    if(from && recordTime < from) return false;
-    if(to && recordTime > to) return false;
+    const t = new Date(r.time); // ✅ FIXED
+    if(from && t < from) return false;
+    if(to && t > to) return false;
 
     return true;
   });
 }
 
-/* ================= CSV ================= */
+/* ===== CSV ===== */
 function exportCSV(){
   const data = filteredRecords();
   if(!data.length){ alert("No data found"); return; }
 
-  const headers = [
-    "Hostel","Emp ID","Name","Department","Sub Dept",
-    "Mobile","Address","Join Date","Leave Date","Saved Time"
-  ];
-
-  let csv = headers.join(",") + "\n";
+  let csv =
+"Hostel,Emp ID,Name,Department,Sub Dept,Mobile,Address,Join,Leave,Time\n";
 
   data.forEach(r=>{
     csv += [
@@ -153,13 +143,12 @@ function exportCSV(){
   download(csv,"hostel_export.csv","text/csv");
 }
 
-/* ================= PDF ================= */
+/* ===== PDF ===== */
 function exportPDF(){
   const data = filteredRecords();
   if(!data.length){ alert("No data found"); return; }
 
   const r = data[0];
-
   const html = `
   <h2>Hostel Record</h2>
   <p><b>Emp ID:</b> ${r.empId}</p>
@@ -171,39 +160,38 @@ function exportPDF(){
   <p><b>Address:</b> ${r.address}</p>
   <p><b>Join Date:</b> ${r.joinDate}</p>
   <p><b>Leave Date:</b> ${r.leaveDate || "-"}</p>
-  <p><b>Saved At:</b> ${r.time}</p>
+  <p><b>Time:</b> ${r.time}</p>
   <hr>
   <img src="${r.cnicPic}" width="300"><br><br>
   <img src="${r.empCardPic}" width="300">
   `;
-
-  const win = window.open("");
-  win.document.write(html);
-  win.print();
+  const w = window.open("");
+  w.document.write(html);
+  w.print();
 }
 
-/* ================= IMAGES ================= */
+/* ===== Images ===== */
 function exportImages(){
   const data = filteredRecords();
   if(!data.length){ alert("No data found"); return; }
 
   const r = data[0];
-  download(r.cnicPic, `${r.empId}_CNIC.png`);
-  download(r.empCardPic, `${r.empId}_EMP_CARD.png`);
+  download(r.cnicPic, r.empId+"_CNIC.png");
+  download(r.empCardPic, r.empId+"_EMP_CARD.png");
 }
 
+/* ===== Download Helper ===== */
 function download(content, filename, type){
   const a = document.createElement("a");
-  if(content.startsWith("data:")){
-    a.href = content;
-  }else{
-    const blob = new Blob([content],{type:type});
-    a.href = URL.createObjectURL(blob);
-  }
+  const blob = content.startsWith("data:")
+    ? content
+    : new Blob([content],{type:type});
+  a.href = content.startsWith("data:") ? content : URL.createObjectURL(blob);
   a.download = filename;
   a.click();
 }
 
+/* ===== Back ===== */
 function goBack(){
   window.location.href="hostel.html";
 }
