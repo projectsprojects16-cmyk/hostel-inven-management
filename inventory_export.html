@@ -1,1 +1,184 @@
-<h1>Inventory Export</h1><p>Search, Date Range, CSV / PDF / Video</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inventory Export</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f1f5f9;
+}
+header{
+  background:#0f766e;
+  color:#fff;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header h2{margin:0;font-size:18px;}
+header a{
+  background:#fff;
+  color:#0f766e;
+  text-decoration:none;
+  padding:8px 14px;
+  border-radius:6px;
+  font-weight:bold;
+}
+.container{
+  padding:15px;
+}
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+label{
+  font-weight:bold;
+  display:block;
+  margin-top:12px;
+}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+button{
+  width:100%;
+  margin-top:15px;
+  padding:12px;
+  background:#0f766e;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:15px;
+  cursor:pointer;
+}
+button.secondary{
+  background:#334155;
+}
+button.danger{
+  background:#7c2d12;
+}
+.msg{
+  margin-top:10px;
+  text-align:center;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>Inventory Export</h2>
+  <a href="inventory.html">Back</a>
+</header>
+
+<div class="container">
+<div class="card">
+
+<label>Search Reference No</label>
+<input type="text" id="searchRef" placeholder="Enter Reference No">
+
+<label>From Date & Time</label>
+<input type="datetime-local" id="fromDate">
+
+<label>To Date & Time</label>
+<input type="datetime-local" id="toDate">
+
+<button onclick="exportCSV()">Export to CSV</button>
+<button class="secondary" onclick="exportPDF()">Export to PDF</button>
+<button class="danger" onclick="exportVideo()">Export Video</button>
+
+<div id="msg" class="msg"></div>
+
+</div>
+</div>
+
+<script>
+// Login check
+if(!localStorage.getItem("loggedInUser")){
+  window.location.href="index.html";
+}
+
+function getFilteredData(){
+  const ref = searchRef.value.trim();
+  const from = fromDate.value ? new Date(fromDate.value) : null;
+  const to = toDate.value ? new Date(toDate.value) : null;
+
+  const records = JSON.parse(localStorage.getItem("inventoryRecords")) || [];
+
+  return records.filter(r=>{
+    if(ref && r.refNo !== ref) return false;
+    const t = new Date(r.time);
+    if(from && t < from) return false;
+    if(to && t > to) return false;
+    return true;
+  });
+}
+
+/* CSV EXPORT */
+function exportCSV(){
+  const data = getFilteredData();
+  if(!data.length){ msg.textContent="No data found"; return; }
+
+  let csv = "Reference No,Item Name,Quantity,Location,Installation Date,Expiry Date,Created Time\n";
+  data.forEach(r=>{
+    csv += `${r.refNo},${r.itemName},${r.quantity},${r.location},${r.installDate},${r.expiryDate || ""},${r.time}\n`;
+  });
+
+  downloadFile(csv, "inventory.csv", "text/csv");
+}
+
+/* PDF EXPORT */
+function exportPDF(){
+  const data = getFilteredData();
+  if(!data.length){ msg.textContent="No data found"; return; }
+
+  const r = data[0];
+  let html = `
+  <h2>Inventory Record</h2>
+  <p><b>Reference No:</b> ${r.refNo}</p>
+  <p><b>Item Name:</b> ${r.itemName}</p>
+  <p><b>Quantity:</b> ${r.quantity}</p>
+  <p><b>Location:</b> ${r.location}</p>
+  <p><b>Installation Date:</b> ${r.installDate}</p>
+  <p><b>Expiry Date:</b> ${r.expiryDate || ""}</p>
+  <p><b>Created:</b> ${r.time}</p>
+  `;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.print();
+}
+
+/* VIDEO EXPORT */
+function exportVideo(){
+  const data = getFilteredData();
+  if(!data.length){ msg.textContent="No data found"; return; }
+
+  const r = data[0];
+  const a = document.createElement("a");
+  a.href = r.video;
+  a.download = r.refNo + "_video.webm";
+  a.click();
+}
+
+function downloadFile(content, filename, type){
+  const blob = new Blob([content], {type});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+</script>
+
+</body>
+</html>
