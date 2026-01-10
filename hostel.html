@@ -90,11 +90,11 @@ button.submit:disabled{background:#94a3b8}
 <input type="date" id="leaveDate">
 
 <label>CNIC Picture</label>
-<input type="file" id="cnicPic" accept="image/*">
+<input type="file" id="cnicPic" accept="image/*" capture="environment" required>
 <img id="cnicPreview" class="preview">
 
 <label>Emp Card Picture</label>
-<input type="file" id="empCardPic" accept="image/*">
+<input type="file" id="empCardPic" accept="image/*" capture="environment" required>
 <img id="empPreview" class="preview">
 
 <button class="submit" id="submitBtn" disabled>Submit</button>
@@ -104,123 +104,87 @@ button.submit:disabled{background:#94a3b8}
 </div>
 
 <script>
-// 🔐 Login protection
-if(!localStorage.getItem("loggedInUser")){
+// 🔐 Login check
+const loggedInUser = localStorage.getItem("loggedInUser");
+if(!loggedInUser){
   location.href="index.html";
 }
 
-// 🔗 Elements
+// 🔗 GOOGLE SCRIPT URL (REPLACE THIS)
+const SCRIPT_URL = "PASTE_YOUR_GOOGLE_SCRIPT_WEBAPP_URL_HERE";
+
 const form = document.getElementById("form");
 const submitBtn = document.getElementById("submitBtn");
-const info = document.getElementById("info");
 
-const hostelName = document.getElementById("hostelName");
-const empId = document.getElementById("empId");
-const empName = document.getElementById("empName");
-const department = document.getElementById("department");
-const emergencyName = document.getElementById("emergencyName");
-const emergencyRelation = document.getElementById("emergencyRelation");
-const mobile = document.getElementById("mobile");
-const address = document.getElementById("address");
-const joinDate = document.getElementById("joinDate");
-const leaveDate = document.getElementById("leaveDate");
-const cnicPic = document.getElementById("cnicPic");
-const empCardPic = document.getElementById("empCardPic");
-const cnicPreview = document.getElementById("cnicPreview");
-const empPreview = document.getElementById("empPreview");
-
-// 📦 Data
-let records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
-let editIndex = -1;
-
-// 🔍 Check existing record
-empId.addEventListener("keydown", e=>{
-  if(e.key === "Enter"){
-    e.preventDefault();
-    loadExisting();
-  }
-});
-
-function loadExisting(){
-  editIndex = records.findIndex(r => r.empId === empId.value && !r.leaveDate);
-
-  if(editIndex > -1){
-    const r = records[editIndex];
-
-    hostelName.value = r.hostelName;
-    empName.value = r.empName;
-    department.value = r.department;
-    emergencyName.value = r.emergencyName;
-    emergencyRelation.value = r.emergencyRelation;
-    mobile.value = r.mobile;
-    address.value = r.address;
-    joinDate.value = r.joinDate;
-
-    cnicPreview.src = r.cnicPic;
-    empPreview.src = r.empCardPic;
-
-    info.innerText = "Active record found. Enter Leaving Date to close entry.";
-  } else {
-    info.innerText = "";
-  }
-}
-
-// ✅ Validation
+// Enable submit when form valid
 form.addEventListener("input", ()=>{
-  if(editIndex > -1){
-    submitBtn.disabled = !leaveDate.value;
-  } else {
-    submitBtn.disabled = !(
-      hostelName.value &&
-      empId.value &&
-      empName.value &&
-      department.value &&
-      emergencyName.value &&
-      emergencyRelation.value &&
-      mobile.value &&
-      address.value &&
-      joinDate.value &&
-      cnicPic.files.length &&
-      empCardPic.files.length
-    );
-  }
+  submitBtn.disabled = !(
+    hostelName.value &&
+    empId.value &&
+    empName.value &&
+    department.value &&
+    emergencyName.value &&
+    emergencyRelation.value &&
+    mobile.value &&
+    address.value &&
+    joinDate.value &&
+    cnicPic.files.length &&
+    empCardPic.files.length
+  );
 });
 
-// 🖼 Preview
+// Image preview
 cnicPic.onchange = ()=> cnicPreview.src = URL.createObjectURL(cnicPic.files[0]);
 empCardPic.onchange = ()=> empPreview.src = URL.createObjectURL(empCardPic.files[0]);
 
-// 💾 Submit
-form.onsubmit = e=>{
+// Convert file → Base64
+function toBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Submit
+form.onsubmit = async e=>{
   e.preventDefault();
-
-  if(editIndex > -1){
-    records[editIndex].leaveDate = leaveDate.value;
-  } else {
-    records.push({
-      hostelName: hostelName.value,
-      empId: empId.value,
-      empName: empName.value,
-      department: department.value,
-      emergencyName: emergencyName.value,
-      emergencyRelation: emergencyRelation.value,
-      mobile: mobile.value,
-      address: address.value,
-      joinDate: joinDate.value,
-      leaveDate: "",
-      cnicPic: cnicPreview.src,
-      empCardPic: empPreview.src,
-      enteredBy: localStorage.getItem("loggedInUser"),
-      time: new Date().toISOString()
-    });
-  }
-
-  localStorage.setItem("hostelRecords", JSON.stringify(records));
-  alert("Record saved successfully");
-
-  form.reset();
   submitBtn.disabled = true;
-  editIndex = -1;
+
+  const data = {
+    enteredBy: loggedInUser,
+    hostelName: hostelName.value,
+    empId: empId.value,
+    empName: empName.value,
+    department: department.value,
+    emergencyName: emergencyName.value,
+    emergencyRelation: emergencyRelation.value,
+    mobile: mobile.value,
+    address: address.value,
+    joinDate: joinDate.value,
+    leaveDate: leaveDate.value || "",
+    cnicPic: await toBase64(cnicPic.files[0]),
+    empCardPic: await toBase64(empCardPic.files[0]),
+    time: new Date().toISOString()
+  };
+
+  // 🔹 Local backup
+  const records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
+  records.push(data);
+  localStorage.setItem("hostelRecords", JSON.stringify(records));
+
+  // 🔹 Send to Google Drive + Sheet
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify(data)
+  })
+  .then(()=> alert("Record saved successfully"))
+  .catch(()=> alert("Saved locally, Google sync failed"))
+  .finally(()=>{
+    form.reset();
+    submitBtn.disabled = true;
+  });
 };
 </script>
 
