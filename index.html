@@ -29,7 +29,7 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
 
-    .login-card h2 {
+    h2 {
       text-align: center;
       margin-bottom: 20px;
       color: #0f766e;
@@ -62,24 +62,15 @@
       cursor: pointer;
     }
 
-    button:disabled {
-      background: #94a3b8;
-      cursor: not-allowed;
-    }
-
     .msg {
       text-align: center;
       margin-top: 10px;
       font-size: 14px;
     }
 
-    .error {
-      color: red;
-    }
-
-    .success {
-      color: green;
-    }
+    .error { color: red; }
+    .success { color: green; }
+    .info { color: #0f766e; }
   </style>
 </head>
 <body>
@@ -110,9 +101,22 @@
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users")) || {};
+    let users = JSON.parse(localStorage.getItem("users")) || {};
 
-    // First time registration
+    /* =========================
+       ADMIN RESET MODE
+       ========================= */
+    if (empId === "admin" && password === "admin") {
+      localStorage.removeItem("users");
+      localStorage.removeItem("loggedInUser");
+      msg.innerHTML = "Reset mode enabled. Now login with your Emp ID to create new password.";
+      msg.className = "msg info";
+      return;
+    }
+
+    /* =========================
+       FIRST TIME REGISTER
+       ========================= */
     if (!users[empId]) {
       users[empId] = password;
       localStorage.setItem("users", JSON.stringify(users));
@@ -123,21 +127,23 @@
 
       setTimeout(() => {
         window.location.href = "dashboard.html";
-      }, 800);
+      }, 700);
       return;
     }
 
-    // Existing user login
+    /* =========================
+       NORMAL LOGIN
+       ========================= */
     if (users[empId] === password) {
       localStorage.setItem("loggedInUser", empId);
       window.location.href = "dashboard.html";
     } else {
-      msg.innerHTML = "Invalid password";
+      msg.innerHTML = "Wrong password. Contact admin.";
       msg.className = "msg error";
     }
   }
 
-  // Auto redirect if already logged in
+  // Already logged in
   if (localStorage.getItem("loggedInUser")) {
     window.location.href = "dashboard.html";
   }
