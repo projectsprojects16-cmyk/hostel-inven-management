@@ -6,62 +6,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f1f5f9;
-}
-header{
-  background:#0f766e;
-  color:#fff;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-header h2{margin:0;font-size:18px;}
-header button{
-  background:#fff;
-  color:#0f766e;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  font-weight:bold;
-  cursor:pointer;
-}
-.container{padding:15px;}
-.card{
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.1);
-}
-label{font-weight:bold;display:block;margin-top:12px;}
-input,select{
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-.preview{
-  width:100%;
-  max-height:200px;
-  margin-top:8px;
-  border-radius:6px;
-}
-button.submit{
-  width:100%;
-  margin-top:20px;
-  padding:12px;
-  background:#0f766e;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  font-size:16px;
-}
-button.submit:disabled{background:#94a3b8;}
-.info{margin-top:10px;color:#b91c1c;font-size:14px;}
+body{margin:0;font-family:Arial;background:#f1f5f9}
+header{background:#0f766e;color:#fff;padding:15px;display:flex;justify-content:space-between}
+header button{background:#fff;color:#0f766e;border:none;padding:8px 14px;border-radius:6px;font-weight:bold}
+.container{padding:15px}
+.card{background:#fff;padding:15px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,.1)}
+label{font-weight:bold;margin-top:12px;display:block}
+input,select{width:100%;padding:10px;margin-top:5px;border-radius:6px;border:1px solid #ccc}
+.preview{width:100%;max-height:200px;margin-top:8px;border-radius:6px}
+button.submit{width:100%;margin-top:20px;padding:12px;background:#0f766e;color:#fff;border:none;border-radius:8px;font-size:16px}
+button.submit:disabled{background:#94a3b8}
+.info{margin-top:10px;color:#b91c1c;font-size:14px}
 </style>
 </head>
 
@@ -69,92 +24,81 @@ button.submit:disabled{background:#94a3b8;}
 
 <header>
   <h2>Hostel Management</h2>
-  <button onclick="goExport()">Export</button>
+  <button onclick="location.href='hostel_export.html'">Export</button>
 </header>
 
 <div class="container">
 <div class="card">
 
-<form id="hostelForm">
+<form id="form">
 
 <label>Hostel Name</label>
 <select id="hostelName" required>
-  <option value="">Select Hostel</option>
-  <option>Vigo</option>
-  <option>STPL</option>
-  <option>Champion</option>
-  <option>Saddiq</option>
-  <option>Colony</option>
-  <option>Murree</option>
+<option value="">Select</option>
+<option>Vigo</option><option>STPL</option><option>Champion</option>
+<option>Saddiq</option><option>Colony</option><option>Murree</option>
 </select>
 
 <label>Emp ID</label>
-<input type="text" id="empId" required>
-
+<input id="empId" required>
 <div id="info" class="info"></div>
 
 <label>Emp Name</label>
-<input type="text" id="empName" required>
+<input id="empName" required>
 
 <label>Department</label>
-<input type="text" id="department" required>
+<input id="department" required>
 
 <label>Emergency Contact Name</label>
-<input type="text" id="emergencyName" required>
+<input id="emergencyName" required>
 
 <label>Relation With Employee</label>
-<input type="text" id="emergencyRelation" required>
+<input id="emergencyRelation" required>
 
 <label>Mobile Number</label>
-<input type="tel" id="mobile" required>
+<input id="mobile" required>
 
 <label>Permanent Address</label>
-<input type="text" id="address" required>
+<input id="address" required>
 
-<label>Hostel Joining Date</label>
+<label>Joining Date</label>
 <input type="date" id="joinDate" required>
 
-<label>Hostel Leaving Date</label>
+<label>Leaving Date</label>
 <input type="date" id="leaveDate">
 
 <label>CNIC Picture</label>
-<input type="file" id="cnicPic" accept="image/*" capture="environment" required>
+<input type="file" id="cnicPic" accept="image/*" capture>
 <img id="cnicPreview" class="preview">
 
-<label>Emp Card Front Picture</label>
-<input type="file" id="empCardPic" accept="image/*" capture="environment" required>
+<label>Emp Card Picture</label>
+<input type="file" id="empCardPic" accept="image/*" capture>
 <img id="empPreview" class="preview">
 
-<button type="submit" id="submitBtn" class="submit" disabled>Submit</button>
+<button class="submit" id="submitBtn" disabled>Submit</button>
 
 </form>
-
 </div>
 </div>
 
 <script>
-if(!localStorage.getItem("loggedInUser")){
-  window.location.href="index.html";
-}
+if(!localStorage.getItem("loggedInUser")) location.href="index.html";
 
-const form = document.getElementById("hostelForm");
-const submitBtn = document.getElementById("submitBtn");
-const info = document.getElementById("info");
+const form=document.getElementById("form");
+const submitBtn=document.getElementById("submitBtn");
+const info=document.getElementById("info");
 
-let records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
-let existingIndex = -1;
+let records=JSON.parse(localStorage.getItem("hostelRecords"))||[];
+let editIndex=-1;
 
-empId.addEventListener("keydown", e=>{
-  if(e.key==="Enter"){
-    e.preventDefault();
-    loadExisting();
-  }
+empId.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();loadExisting();}
 });
 
 function loadExisting(){
-  existingIndex = records.findIndex(r=>r.empId===empId.value && !r.leaveDate);
-  if(existingIndex>-1){
-    const r = records[existingIndex];
+  editIndex=records.findIndex(r=>r.empId===empId.value && !r.leaveDate);
+  if(editIndex>-1){
+    const r=records[editIndex];
     hostelName.value=r.hostelName;
     empName.value=r.empName;
     department.value=r.department;
@@ -165,27 +109,32 @@ function loadExisting(){
     joinDate.value=r.joinDate;
     cnicPreview.src=r.cnicPic;
     empPreview.src=r.empCardPic;
+
+    cnicPic.required=false;
+    empCardPic.required=false;
+
+    info.innerText="Active record found. Enter Leaving Date to update.";
     submitBtn.disabled=true;
-    info.innerText="Active record found. Please enter Leaving Date to submit.";
   }else{
     info.innerText="";
+    cnicPic.required=true;
+    empCardPic.required=true;
   }
 }
 
-form.addEventListener("input",checkForm);
-function checkForm(){
-  if(existingIndex>-1){
+form.addEventListener("input",()=>{
+  if(editIndex>-1){
     submitBtn.disabled=!leaveDate.value;
-    return;
+  }else{
+    submitBtn.disabled=!(
+      hostelName.value && empId.value && empName.value &&
+      department.value && emergencyName.value &&
+      emergencyRelation.value && mobile.value &&
+      address.value && joinDate.value &&
+      cnicPic.files.length && empCardPic.files.length
+    );
   }
-  submitBtn.disabled=!(
-    hostelName.value && empId.value && empName.value &&
-    department.value && emergencyName.value &&
-    emergencyRelation.value && mobile.value &&
-    address.value && joinDate.value &&
-    cnicPic.files.length && empCardPic.files.length
-  );
-}
+});
 
 cnicPic.onchange=()=>cnicPreview.src=URL.createObjectURL(cnicPic.files[0]);
 empCardPic.onchange=()=>empPreview.src=URL.createObjectURL(empCardPic.files[0]);
@@ -193,8 +142,8 @@ empCardPic.onchange=()=>empPreview.src=URL.createObjectURL(empCardPic.files[0]);
 form.onsubmit=e=>{
   e.preventDefault();
 
-  if(existingIndex>-1){
-    records[existingIndex].leaveDate=leaveDate.value;
+  if(editIndex>-1){
+    records[editIndex].leaveDate=leaveDate.value;
   }else{
     records.push({
       hostelName:hostelName.value,
@@ -217,13 +166,9 @@ form.onsubmit=e=>{
   alert("Record saved successfully");
   form.reset();
   submitBtn.disabled=true;
+  editIndex=-1;
   info.innerText="";
-  existingIndex=-1;
 };
-
-function goExport(){
-  window.location.href="hostel_export.html";
-}
 </script>
 
 </body>
