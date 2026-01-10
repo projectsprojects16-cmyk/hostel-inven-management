@@ -90,21 +90,11 @@ button.submit:disabled{background:#94a3b8}
 <input type="date" id="leaveDate">
 
 <label>CNIC Picture</label>
-<input
-  type="file"
-  id="cnicPic"
-  accept="image/*"
-  capture="environment"
->
+<input type="file" id="cnicPic" accept="image/*" capture="environment">
 <img id="cnicPreview" class="preview">
 
 <label>Emp Card Picture</label>
-<input
-  type="file"
-  id="empCardPic"
-  accept="image/*"
-  capture="environment"
->
+<input type="file" id="empCardPic" accept="image/*" capture="environment">
 <img id="empPreview" class="preview">
 
 <button class="submit" id="submitBtn" disabled>Submit</button>
@@ -114,43 +104,47 @@ button.submit:disabled{background:#94a3b8}
 </div>
 
 <script>
-// Login protection
-if(!localStorage.getItem("loggedInUser")){
+/* ===== LOGIN CHECK ===== */
+const loggedInUser = localStorage.getItem("loggedInUser");
+if(!loggedInUser){
   location.href="index.html";
 }
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMjMSDeI5HBNPBNQMQrW-RGNjkfMWH5QyAOx-YvDUC8M5NPum3V7tgipZi2RXj1pqc/exec";
 
 const form = document.getElementById("form");
 const submitBtn = document.getElementById("submitBtn");
 const info = document.getElementById("info");
 
-let records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
-let editIndex = -1;
+let activeRecord = null;
 
-// Emp ID Enter detect
-empId.addEventListener("keydown", e=>{
+/* ===== EMP ID CHECK ===== */
+empId.addEventListener("keydown", async e=>{
   if(e.key==="Enter"){
     e.preventDefault();
-    loadExisting();
+    checkEmpId();
   }
 });
 
-function loadExisting(){
-  editIndex = records.findIndex(r => r.empId === empId.value && !r.leaveDate);
+async function checkEmpId(){
+  info.innerText = "Checking record...";
+  const res = await fetch(`${SCRIPT_URL}?action=checkEmp&empId=${empId.value}`);
+  const data = await res.json();
 
-  if(editIndex > -1){
-    const r = records[editIndex];
+  if(data.status==="active"){
+    activeRecord = data.record;
 
-    hostelName.value = r.hostelName;
-    empName.value = r.empName;
-    department.value = r.department;
-    emergencyName.value = r.emergencyName;
-    emergencyRelation.value = r.emergencyRelation;
-    mobile.value = r.mobile;
-    address.value = r.address;
-    joinDate.value = r.joinDate;
+    hostelName.value = data.record.hostelName;
+    empName.value = data.record.empName;
+    department.value = data.record.department;
+    emergencyName.value = data.record.emergencyName;
+    emergencyRelation.value = data.record.emergencyRelation;
+    mobile.value = data.record.mobile;
+    address.value = data.record.address;
+    joinDate.value = data.record.joinDate;
 
-    cnicPreview.src = r.cnicPic;
-    empPreview.src = r.empCardPic;
+    cnicPreview.src = data.record.cnicPic;
+    empPreview.src = data.record.empCardPic;
 
     cnicPic.required = false;
     empCardPic.required = false;
@@ -158,15 +152,16 @@ function loadExisting(){
     info.innerText = "Active record found. Enter Leaving Date to update.";
     submitBtn.disabled = true;
   }else{
+    activeRecord = null;
     info.innerText = "";
     cnicPic.required = true;
     empCardPic.required = true;
   }
 }
 
-// Form validation
+/* ===== VALIDATION ===== */
 form.addEventListener("input", ()=>{
-  if(editIndex > -1){
+  if(activeRecord){
     submitBtn.disabled = !leaveDate.value;
   }else{
     submitBtn.disabled = !(
@@ -185,49 +180,41 @@ form.addEventListener("input", ()=>{
   }
 });
 
-// Image preview
-cnicPic.onchange = ()=>{
-  if(cnicPic.files[0]){
-    cnicPreview.src = URL.createObjectURL(cnicPic.files[0]);
-  }
-};
-empCardPic.onchange = ()=>{
-  if(empCardPic.files[0]){
-    empPreview.src = URL.createObjectURL(empCardPic.files[0]);
-  }
-};
+/* ===== IMAGE PREVIEW ===== */
+cnicPic.onchange = ()=> cnicPreview.src = URL.createObjectURL(cnicPic.files[0]);
+empCardPic.onchange = ()=> empPreview.src = URL.createObjectURL(empCardPic.files[0]);
 
-// Submit
-form.onsubmit = e=>{
+/* ===== SUBMIT ===== */
+form.onsubmit = async e=>{
   e.preventDefault();
 
-  if(editIndex > -1){
-    records[editIndex].leaveDate = leaveDate.value;
-  }else{
-    records.push({
-      hostelName: hostelName.value,
-      empId: empId.value,
-      empName: empName.value,
-      department: department.value,
-      emergencyName: emergencyName.value,
-      emergencyRelation: emergencyRelation.value,
-      mobile: mobile.value,
-      address: address.value,
-      joinDate: joinDate.value,
-      leaveDate: "",
-      cnicPic: cnicPreview.src,
-      empCardPic: empPreview.src,
-      time: new Date().toISOString()
-    });
-  }
+  const payload = {
+    action: activeRecord ? "updateLeave" : "newEntry",
+    enteredBy: loggedInUser,
+    hostelName: hostelName.value,
+    empId: empId.value,
+    empName: empName.value,
+    department: department.value,
+    emergencyName: emergencyName.value,
+    emergencyRelation: emergencyRelation.value,
+    mobile: mobile.value,
+    address: address.value,
+    joinDate: joinDate.value,
+    leaveDate: leaveDate.value || "",
+    cnicPic: cnicPreview.src || "",
+    empCardPic: empPreview.src || ""
+  };
 
-  localStorage.setItem("hostelRecords", JSON.stringify(records));
+  await fetch(SCRIPT_URL,{
+    method:"POST",
+    body: JSON.stringify(payload)
+  });
+
   alert("Record saved successfully");
-
   form.reset();
   submitBtn.disabled = true;
-  editIndex = -1;
   info.innerText = "";
+  activeRecord = null;
 };
 </script>
 
