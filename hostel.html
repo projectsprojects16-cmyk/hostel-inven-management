@@ -29,20 +29,14 @@ header button{
   font-weight:bold;
   cursor:pointer;
 }
-.container{
-  padding:15px;
-}
+.container{padding:15px;}
 .card{
   background:#fff;
   padding:15px;
   border-radius:10px;
   box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
-label{
-  font-weight:bold;
-  display:block;
-  margin-top:12px;
-}
+label{font-weight:bold;display:block;margin-top:12px;}
 input,select{
   width:100%;
   padding:10px;
@@ -66,9 +60,8 @@ button.submit{
   border-radius:8px;
   font-size:16px;
 }
-button.submit:disabled{
-  background:#94a3b8;
-}
+button.submit:disabled{background:#94a3b8;}
+.info{margin-top:10px;color:#b91c1c;font-size:14px;}
 </style>
 </head>
 
@@ -98,14 +91,19 @@ button.submit:disabled{
 <label>Emp ID</label>
 <input type="text" id="empId" required>
 
+<div id="info" class="info"></div>
+
 <label>Emp Name</label>
 <input type="text" id="empName" required>
 
 <label>Department</label>
 <input type="text" id="department" required>
 
-<label>Sub Department</label>
-<input type="text" id="subDepartment" required>
+<label>Emergency Contact Name</label>
+<input type="text" id="emergencyName" required>
+
+<label>Relation With Employee</label>
+<input type="text" id="emergencyRelation" required>
 
 <label>Mobile Number</label>
 <input type="tel" id="mobile" required>
@@ -116,7 +114,7 @@ button.submit:disabled{
 <label>Hostel Joining Date</label>
 <input type="date" id="joinDate" required>
 
-<label>Hostel Leaving Date (Optional)</label>
+<label>Hostel Leaving Date</label>
 <input type="date" id="leaveDate">
 
 <label>CNIC Picture</label>
@@ -135,71 +133,96 @@ button.submit:disabled{
 </div>
 
 <script>
-const form = document.getElementById("hostelForm");
-const submitBtn = document.getElementById("submitBtn");
-
-form.addEventListener("input", checkForm);
-form.addEventListener("change", checkForm);
-
-function checkForm(){
-  const requiredFilled =
-    hostelName.value &&
-    empId.value &&
-    empName.value &&
-    department.value &&
-    subDepartment.value &&
-    mobile.value &&
-    address.value &&
-    joinDate.value &&
-    cnicPic.files.length &&
-    empCardPic.files.length;
-
-  submitBtn.disabled = !requiredFilled;
+if(!localStorage.getItem("loggedInUser")){
+  window.location.href="index.html";
 }
 
-// Image preview
-cnicPic.onchange = () => {
-  cnicPreview.src = URL.createObjectURL(cnicPic.files[0]);
-};
-empCardPic.onchange = () => {
-  empPreview.src = URL.createObjectURL(empCardPic.files[0]);
-};
+const form = document.getElementById("hostelForm");
+const submitBtn = document.getElementById("submitBtn");
+const info = document.getElementById("info");
 
-// Save data
-form.onsubmit = (e) => {
+let records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
+let existingIndex = -1;
+
+empId.addEventListener("keydown", e=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    loadExisting();
+  }
+});
+
+function loadExisting(){
+  existingIndex = records.findIndex(r=>r.empId===empId.value && !r.leaveDate);
+  if(existingIndex>-1){
+    const r = records[existingIndex];
+    hostelName.value=r.hostelName;
+    empName.value=r.empName;
+    department.value=r.department;
+    emergencyName.value=r.emergencyName;
+    emergencyRelation.value=r.emergencyRelation;
+    mobile.value=r.mobile;
+    address.value=r.address;
+    joinDate.value=r.joinDate;
+    cnicPreview.src=r.cnicPic;
+    empPreview.src=r.empCardPic;
+    submitBtn.disabled=true;
+    info.innerText="Active record found. Please enter Leaving Date to submit.";
+  }else{
+    info.innerText="";
+  }
+}
+
+form.addEventListener("input",checkForm);
+function checkForm(){
+  if(existingIndex>-1){
+    submitBtn.disabled=!leaveDate.value;
+    return;
+  }
+  submitBtn.disabled=!(
+    hostelName.value && empId.value && empName.value &&
+    department.value && emergencyName.value &&
+    emergencyRelation.value && mobile.value &&
+    address.value && joinDate.value &&
+    cnicPic.files.length && empCardPic.files.length
+  );
+}
+
+cnicPic.onchange=()=>cnicPreview.src=URL.createObjectURL(cnicPic.files[0]);
+empCardPic.onchange=()=>empPreview.src=URL.createObjectURL(empCardPic.files[0]);
+
+form.onsubmit=e=>{
   e.preventDefault();
 
-  const data = {
-    hostelName: hostelName.value,
-    empId: empId.value,
-    empName: empName.value,
-    department: department.value,
-    subDepartment: subDepartment.value,
-    mobile: mobile.value,
-    address: address.value,
-    joinDate: joinDate.value,
-    leaveDate: leaveDate.value,
-    cnicPic: cnicPreview.src,
-    empCardPic: empPreview.src,
-    time: new Date().toISOString()
-  };
+  if(existingIndex>-1){
+    records[existingIndex].leaveDate=leaveDate.value;
+  }else{
+    records.push({
+      hostelName:hostelName.value,
+      empId:empId.value,
+      empName:empName.value,
+      department:department.value,
+      emergencyName:emergencyName.value,
+      emergencyRelation:emergencyRelation.value,
+      mobile:mobile.value,
+      address:address.value,
+      joinDate:joinDate.value,
+      leaveDate:"",
+      cnicPic:cnicPreview.src,
+      empCardPic:empPreview.src,
+      time:new Date().toISOString()
+    });
+  }
 
-  const records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
-  records.push(data);
-  localStorage.setItem("hostelRecords", JSON.stringify(records));
-
-  alert("Hostel record saved successfully");
+  localStorage.setItem("hostelRecords",JSON.stringify(records));
+  alert("Record saved successfully");
   form.reset();
-  submitBtn.disabled = true;
+  submitBtn.disabled=true;
+  info.innerText="";
+  existingIndex=-1;
 };
 
 function goExport(){
-  window.location.href = "hostel_export.html";
-}
-
-// Login protection
-if(!localStorage.getItem("loggedInUser")){
-  window.location.href="index.html";
+  window.location.href="hostel_export.html";
 }
 </script>
 
