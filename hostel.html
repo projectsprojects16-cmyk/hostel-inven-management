@@ -30,39 +30,39 @@ button.submit:disabled{background:#94a3b8}
 <div class="container">
 <div class="card">
 
-<form id="form">
+<form id="form" novalidate>
 
 <label>Hostel Name</label>
-<select id="hostelName" required>
+<select id="hostelName">
 <option value="">Select</option>
 <option>Vigo</option><option>STPL</option><option>Champion</option>
 <option>Saddiq</option><option>Colony</option><option>Murree</option>
 </select>
 
 <label>Emp ID</label>
-<input id="empId" required>
+<input id="empId">
 <div id="info" class="info"></div>
 
 <label>Emp Name</label>
-<input id="empName" required>
+<input id="empName">
 
 <label>Department</label>
-<input id="department" required>
+<input id="department">
 
 <label>Emergency Contact Name</label>
-<input id="emergencyName" required>
+<input id="emergencyName">
 
 <label>Relation With Employee</label>
-<input id="emergencyRelation" required>
+<input id="emergencyRelation">
 
-<label>Mobile Number</label>
-<input id="mobile" required>
+<label>Personal Mobile Number</label>
+<input id="mobile">
 
 <label>Permanent Address</label>
-<input id="address" required>
+<input id="address">
 
 <label>Joining Date</label>
-<input type="date" id="joinDate" required>
+<input type="date" id="joinDate">
 
 <label>Leaving Date</label>
 <input type="date" id="leaveDate">
@@ -84,21 +84,25 @@ button.submit:disabled{background:#94a3b8}
 <script>
 if(!localStorage.getItem("loggedInUser")) location.href="index.html";
 
-const form=document.getElementById("form");
+const form=formEl=document.getElementById("form");
 const submitBtn=document.getElementById("submitBtn");
 const info=document.getElementById("info");
 
 let records=JSON.parse(localStorage.getItem("hostelRecords"))||[];
 let editIndex=-1;
 
+/* ========= ENTER ON EMP ID ========= */
 empId.addEventListener("keydown",e=>{
   if(e.key==="Enter"){e.preventDefault();loadExisting();}
 });
 
+/* ========= LOAD EXISTING ========= */
 function loadExisting(){
   editIndex=records.findIndex(r=>r.empId===empId.value && !r.leaveDate);
+
   if(editIndex>-1){
     const r=records[editIndex];
+
     hostelName.value=r.hostelName;
     empName.value=r.empName;
     department.value=r.department;
@@ -110,18 +114,33 @@ function loadExisting(){
     cnicPreview.src=r.cnicPic;
     empPreview.src=r.empCardPic;
 
-    cnicPic.required=false;
-    empCardPic.required=false;
-
-    info.innerText="Active record found. Enter Leaving Date to update.";
+    setRequired(false);          // 🔥 IMPORTANT
     submitBtn.disabled=true;
+    info.innerText="Active record found. Enter Leaving Date to update.";
   }else{
+    resetRequired();
     info.innerText="";
-    cnicPic.required=true;
-    empCardPic.required=true;
   }
 }
 
+/* ========= REQUIRED HANDLING ========= */
+function setRequired(updateMode){
+  hostelName.required=!updateMode;
+  empName.required=!updateMode;
+  department.required=!updateMode;
+  emergencyName.required=!updateMode;
+  emergencyRelation.required=!updateMode;
+  mobile.required=!updateMode;
+  address.required=!updateMode;
+  joinDate.required=!updateMode;
+  cnicPic.required=!updateMode;
+  empCardPic.required=!updateMode;
+  leaveDate.required=updateMode;
+}
+
+function resetRequired(){ setRequired(false); }
+
+/* ========= ENABLE SUBMIT ========= */
 form.addEventListener("input",()=>{
   if(editIndex>-1){
     submitBtn.disabled=!leaveDate.value;
@@ -136,9 +155,11 @@ form.addEventListener("input",()=>{
   }
 });
 
+/* ========= PREVIEW ========= */
 cnicPic.onchange=()=>cnicPreview.src=URL.createObjectURL(cnicPic.files[0]);
 empCardPic.onchange=()=>empPreview.src=URL.createObjectURL(empCardPic.files[0]);
 
+/* ========= SUBMIT ========= */
 form.onsubmit=e=>{
   e.preventDefault();
 
@@ -164,10 +185,12 @@ form.onsubmit=e=>{
 
   localStorage.setItem("hostelRecords",JSON.stringify(records));
   alert("Record saved successfully");
+
   form.reset();
   submitBtn.disabled=true;
   editIndex=-1;
   info.innerText="";
+  resetRequired();
 };
 </script>
 
