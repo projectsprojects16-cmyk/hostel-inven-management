@@ -13,7 +13,7 @@ function filteredRecords(){
   return records.filter(r=>{
     if(emp && r.empId !== emp) return false;
 
-    const t = new Date(r.createdAt);
+    const t = new Date(r.time); // ✅ FIXED HERE
     if(from && t < from) return false;
     if(to && t > to) return false;
 
@@ -28,7 +28,7 @@ function exportCSV(){
 
   const headers = [
     "Hostel Name","Emp ID","Emp Name","Department","Sub Department",
-    "Mobile","Address","Join Date","Leave Date","Created At"
+    "Mobile","Address","Join Date","Leave Date","Saved Time"
   ];
 
   let csv = headers.join(",") + "\n";
@@ -44,7 +44,7 @@ function exportCSV(){
       r.address,
       r.joinDate,
       r.leaveDate || "",
-      r.createdAt
+      r.time
     ].join(",") + "\n";
   });
 
@@ -69,7 +69,7 @@ function exportPDF(){
   <p><b>Address:</b> ${r.address}</p>
   <p><b>Join Date:</b> ${r.joinDate}</p>
   <p><b>Leave Date:</b> ${r.leaveDate || "-"}</p>
-  <p><b>Created At:</b> ${r.createdAt}</p>
+  <p><b>Saved Time:</b> ${r.time}</p>
   <hr>
   <img src="${r.cnicPic}" width="300"><br><br>
   <img src="${r.empCardPic}" width="300">
