@@ -44,12 +44,9 @@ input{
   border-radius:6px;
   border:1px solid #ccc;
 }
-.actions{
-  margin-top:20px;
-  display:grid;
-  gap:10px;
-}
-.actions button{
+button{
+  margin-top:15px;
+  width:100%;
   padding:12px;
   border:none;
   border-radius:8px;
@@ -59,7 +56,18 @@ input{
 }
 .csv{background:#0f766e;}
 .pdf{background:#2563eb;}
-.img{background:#7c3aed;}
+.report{
+  margin-top:20px;
+  padding:15px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+}
+.report img{
+  width:100%;
+  max-width:300px;
+  margin-top:10px;
+  border-radius:6px;
+}
 </style>
 </head>
 
@@ -76,17 +84,17 @@ input{
 <label>Search by Emp ID</label>
 <input type="text" id="searchEmp">
 
-<label>From Date & Time</label>
-<input type="datetime-local" id="fromDate">
+<button class="pdf" onclick="exportPDF()">Export PDF</button>
 
-<label>To Date & Time</label>
-<input type="datetime-local" id="toDate">
+<label>From Date</label>
+<input type="date" id="fromDate">
 
-<div class="actions">
-  <button class="csv" onclick="exportCSV()">Export CSV</button>
-  <button class="pdf" onclick="exportPDF()">Export PDF</button>
-  <button class="img" onclick="exportImages()">Export Images</button>
-</div>
+<label>To Date</label>
+<input type="date" id="toDate">
+
+<button class="csv" onclick="exportCSV()">Export CSV</button>
+
+<div id="preview"></div>
 
 </div>
 </div>
@@ -94,24 +102,24 @@ input{
 <script>
 /* ===== Login Protection ===== */
 if(!localStorage.getItem("loggedInUser")){
-  window.location.href="index.html";
+  location.href="index.html";
 }
 
-/* ===== Load Records ===== */
+const loginUser = localStorage.getItem("loggedInUser");
 const records = JSON.parse(localStorage.getItem("hostelRecords")) || [];
 
-/* ===== Filter Logic ===== */
+/* ===== Filter ===== */
 function filteredRecords(){
-  const emp = document.getElementById("searchEmp").value.trim();
+  const emp = searchEmp.value.trim();
   const from = fromDate.value ? new Date(fromDate.value) : null;
   const to = toDate.value ? new Date(toDate.value) : null;
 
   return records.filter(r=>{
     if(emp && r.empId !== emp) return false;
 
-    const t = new Date(r.time); // ✅ FIXED
+    const t = new Date(r.time);
     if(from && t < from) return false;
-    if(to && t > to) return false;
+    if(to && t > new Date(to.getTime()+86400000)) return false;
 
     return true;
   });
@@ -123,7 +131,7 @@ function exportCSV(){
   if(!data.length){ alert("No data found"); return; }
 
   let csv =
-"Hostel,Emp ID,Name,Department,Sub Dept,Mobile,Address,Join,Leave,Time\n";
+"Hostel,Emp ID,Name,Department,Emergency Name,Relation,Mobile,Address,Join Date,Leave Date,Entered By,Time\n";
 
   data.forEach(r=>{
     csv += [
@@ -131,11 +139,13 @@ function exportCSV(){
       r.empId,
       r.empName,
       r.department,
-      r.subDepartment,
+      r.emergencyName,
+      r.emergencyRelation,
       r.mobile,
       r.address,
       r.joinDate,
       r.leaveDate || "",
+      loginUser,
       r.time
     ].join(",") + "\n";
   });
@@ -149,51 +159,45 @@ function exportPDF(){
   if(!data.length){ alert("No data found"); return; }
 
   const r = data[0];
+
   const html = `
-  <h2>Hostel Record</h2>
-  <p><b>Emp ID:</b> ${r.empId}</p>
-  <p><b>Name:</b> ${r.empName}</p>
-  <p><b>Hostel:</b> ${r.hostelName}</p>
-  <p><b>Department:</b> ${r.department}</p>
-  <p><b>Sub Department:</b> ${r.subDepartment}</p>
-  <p><b>Mobile:</b> ${r.mobile}</p>
-  <p><b>Address:</b> ${r.address}</p>
-  <p><b>Join Date:</b> ${r.joinDate}</p>
-  <p><b>Leave Date:</b> ${r.leaveDate || "-"}</p>
-  <p><b>Time:</b> ${r.time}</p>
-  <hr>
-  <img src="${r.cnicPic}" width="300"><br><br>
-  <img src="${r.empCardPic}" width="300">
+  <div style="font-family:Arial;padding:20px">
+    <h2 style="color:#0f766e">Hostel Record</h2>
+    <p><b>Emp ID:</b> ${r.empId}</p>
+    <p><b>Name:</b> ${r.empName}</p>
+    <p><b>Hostel:</b> ${r.hostelName}</p>
+    <p><b>Department:</b> ${r.department}</p>
+    <p><b>Emergency Contact:</b> ${r.emergencyName} (${r.emergencyRelation})</p>
+    <p><b>Mobile:</b> ${r.mobile}</p>
+    <p><b>Address:</b> ${r.address}</p>
+    <p><b>Join Date:</b> ${r.joinDate}</p>
+    <p><b>Leave Date:</b> ${r.leaveDate || "-"}</p>
+    <p><b>Entered By:</b> ${loginUser}</p>
+    <hr>
+    <h3>CNIC Picture</h3>
+    <img src="${r.cnicPic}" width="300"><br><br>
+    <h3>Employee Card</h3>
+    <img src="${r.empCardPic}" width="300">
+  </div>
   `;
+
   const w = window.open("");
   w.document.write(html);
   w.print();
 }
 
-/* ===== Images ===== */
-function exportImages(){
-  const data = filteredRecords();
-  if(!data.length){ alert("No data found"); return; }
-
-  const r = data[0];
-  download(r.cnicPic, r.empId+"_CNIC.png");
-  download(r.empCardPic, r.empId+"_EMP_CARD.png");
-}
-
-/* ===== Download Helper ===== */
+/* ===== Download ===== */
 function download(content, filename, type){
   const a = document.createElement("a");
-  const blob = content.startsWith("data:")
-    ? content
-    : new Blob([content],{type:type});
-  a.href = content.startsWith("data:") ? content : URL.createObjectURL(blob);
+  const blob = new Blob([content],{type:type});
+  a.href = URL.createObjectURL(blob);
   a.download = filename;
   a.click();
 }
 
 /* ===== Back ===== */
 function goBack(){
-  window.location.href="hostel.html";
+  location.href="hostel.html";
 }
 </script>
 
