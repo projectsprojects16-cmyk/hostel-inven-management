@@ -1,157 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>HR App Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>HR App Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f766e">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f766e, #115e59);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .login-card {
-      background: #fff;
-      width: 100%;
-      max-width: 380px;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #0f766e;
-    }
-
-    label {
-      font-size: 14px;
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0f766e;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .msg {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    .error { color: red; }
-    .success { color: green; }
-    .info { color: #0f766e; }
-  </style>
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(135deg,#0f766e,#115e59);
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.card{
+  background:#fff;
+  width:100%;
+  max-width:380px;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+h2{text-align:center;color:#0f766e}
+label{font-weight:bold;font-size:14px}
+input{
+  width:100%;
+  padding:12px;
+  margin:8px 0 15px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+button{
+  width:100%;
+  padding:12px;
+  background:#0f766e;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
+.msg{text-align:center;margin-top:10px;font-size:14px}
+.error{color:red}
+.success{color:green}
+.info{color:#0f766e}
+.hidden{display:none}
+</style>
 </head>
+
 <body>
 
-<div class="login-card">
-  <h2>Employee Login</h2>
+<div class="card">
+<h2>Employee Login</h2>
 
-  <label>Emp ID</label>
-  <input type="text" id="empId" placeholder="Enter Emp ID">
+<label>Emp ID</label>
+<input id="empId">
 
-  <label>Password</label>
-  <input type="password" id="password" placeholder="Enter Password">
+<label>Password</label>
+<input type="password" id="password">
 
-  <button onclick="login()">Login</button>
+<div id="firstTime" class="hidden">
+  <label>New Password</label>
+  <input type="password" id="newPass">
 
-  <div id="msg" class="msg"></div>
+  <label>Confirm Password</label>
+  <input type="password" id="confirmPass">
+</div>
+
+<button onclick="login()">Login</button>
+<div id="msg" class="msg"></div>
 </div>
 
 <script>
-  function login() {
-    const empId = document.getElementById("empId").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const msg = document.getElementById("msg");
+const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbzMjMSDeI5HBNPBNQMQrW-RGNjkfMWH5QyAOx-YvDUC8M5NPum3V7tgipZi2RXj1pqc/exec";
 
-    if (!empId || !password) {
-      msg.innerHTML = "Emp ID & Password required";
-      msg.className = "msg error";
-      return;
-    }
+async function login(){
+  const empId = empIdInput.value.trim();
+  const pass = password.value.trim();
+  const msg = document.getElementById("msg");
 
-    let users = JSON.parse(localStorage.getItem("users")) || {};
-
-    /* =========================
-       ADMIN RESET MODE
-       ========================= */
-    if (empId === "admin" && password === "admin") {
-      localStorage.removeItem("users");
-      localStorage.removeItem("loggedInUser");
-      msg.innerHTML = "Reset mode enabled. Now login with your Emp ID to create new password.";
-      msg.className = "msg info";
-      return;
-    }
-
-    /* =========================
-       FIRST TIME REGISTER
-       ========================= */
-    if (!users[empId]) {
-      users[empId] = password;
-      localStorage.setItem("users", JSON.stringify(users));
-      localStorage.setItem("loggedInUser", empId);
-
-      msg.innerHTML = "Emp ID registered successfully";
-      msg.className = "msg success";
-
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 700);
-      return;
-    }
-
-    /* =========================
-       NORMAL LOGIN
-       ========================= */
-    if (users[empId] === password) {
-      localStorage.setItem("loggedInUser", empId);
-      window.location.href = "dashboard.html";
-    } else {
-      msg.innerHTML = "Wrong password. Contact admin.";
-      msg.className = "msg error";
-    }
+  if(!empId || !pass){
+    msg.innerHTML="Emp ID & Password required";
+    msg.className="msg error";
+    return;
   }
 
-  // Already logged in
-  if (localStorage.getItem("loggedInUser")) {
-    window.location.href = "dashboard.html";
+  msg.innerHTML="Checking...";
+  msg.className="msg info";
+
+  const res = await fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"login",
+      empId,
+      password:pass
+    })
+  });
+
+  const r = await res.json();
+
+  /* ❌ Not approved */
+  if(r.status==="NOT_APPROVED"){
+    msg.innerHTML="Admin approval required";
+    msg.className="msg error";
+    return;
   }
 
-  // Service Worker
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
+  /* 🔑 First time login */
+  if(r.status==="FIRST_TIME"){
+    document.getElementById("firstTime").classList.remove("hidden");
+    msg.innerHTML="Set new password";
+    msg.className="msg info";
+    return;
   }
+
+  /* ❌ Wrong password */
+  if(r.status==="INVALID"){
+    msg.innerHTML="Wrong password";
+    msg.className="msg error";
+    return;
+  }
+
+  /* ✅ Login success */
+  if(r.status==="SUCCESS"){
+    localStorage.setItem("loggedInUser",empId);
+    location.href="dashboard.html";
+  }
+}
+
+/* 🔐 Save new password */
+document.getElementById("confirmPass").addEventListener("keydown",async e=>{
+  if(e.key!=="Enter") return;
+
+  const n = newPass.value;
+  const c = confirmPass.value;
+
+  if(n!==c){
+    msg.innerHTML="Passwords do not match";
+    msg.className="msg error";
+    return;
+  }
+
+  await fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"setPassword",
+      empId:empIdInput.value,
+      newPassword:n
+    })
+  });
+
+  localStorage.setItem("loggedInUser",empIdInput.value);
+  location.href="dashboard.html";
+});
+
+const empIdInput = document.getElementById("empId");
 </script>
 
 </body>
