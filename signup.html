@@ -15,7 +15,6 @@ body{
   align-items:center;
   justify-content:center;
 }
-
 .card{
   background:#fff;
   width:100%;
@@ -24,29 +23,15 @@ body{
   border-radius:12px;
   box-shadow:0 10px 25px rgba(0,0,0,.25);
 }
-
-h2{
-  text-align:center;
-  color:#0f766e;
-  margin-bottom:20px;
-}
-
-label{
-  font-size:14px;
-  font-weight:bold;
-  margin-bottom:6px;
-  display:block;
-}
-
+h2{text-align:center;color:#0f766e}
+label{font-size:14px;font-weight:bold}
 input{
   width:100%;
   padding:12px;
-  margin-bottom:14px;
+  margin:8px 0 14px;
   border-radius:8px;
   border:1px solid #ccc;
-  font-size:15px;
 }
-
 button{
   width:100%;
   padding:12px;
@@ -55,108 +40,76 @@ button{
   border:none;
   border-radius:8px;
   font-size:16px;
-  cursor:pointer;
 }
-
-button:disabled{
-  background:#9ca3af;
-  cursor:not-allowed;
-}
-
-.msg{
-  margin-top:12px;
-  text-align:center;
-  font-size:14px;
-}
-
-.error{color:red;}
-.success{color:green;}
+button:disabled{background:#9ca3af}
+.msg{text-align:center;font-size:14px;margin-top:10px}
+.error{color:red}
+.success{color:green}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h2>Signup Request</h2>
+<h2>Signup Request</h2>
 
-  <label>Full Name</label>
-  <input type="text" id="fullName" placeholder="Enter Full Name">
+<label>Full Name</label>
+<input id="fullName">
 
-  <label>Emp ID</label>
-  <input type="text" id="empId" placeholder="Enter Employee ID">
+<label>Emp ID</label>
+<input id="empId">
 
-  <label>Department</label>
-  <input type="text" id="department" placeholder="Enter Department">
+<label>Department</label>
+<input id="department">
 
-  <label>Designation</label>
-  <input type="text" id="designation" placeholder="Enter Designation">
+<label>Designation</label>
+<input id="designation">
 
-  <label>Mobile Number</label>
-  <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
+<label>Mobile Number</label>
+<input id="mobile">
 
-  <button id="submitBtn" onclick="submitSignup()">
-    Submit Signup Request
-  </button>
-
-  <div id="msg" class="msg"></div>
+<button id="btn" onclick="signup()">Submit Signup</button>
+<div id="msg" class="msg"></div>
 </div>
 
 <script>
-/* 🔗 GOOGLE APPS SCRIPT SIGNUP WEB APP URL */
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/YOUR_SIGNUP_SCRIPT_URL/exec";
+"https://script.google.com/macros/s/AKfycbx0BGsRqQSd-oDFxivNKCSKHh_IAJ8E8KcD5waPkNIX3nafCe1FCQdwYV8Dz8Fpgowe/exec";
 
-function submitSignup(){
+function signup(){
+  const data = {
+    fullName: fullName.value.trim(),
+    empId: empId.value.trim(),
+    department: department.value.trim(),
+    designation: designation.value.trim(),
+    mobile: mobile.value.trim(),
+    time: new Date().toISOString()
+  };
 
-  const fullName = document.getElementById("fullName").value.trim();
-  const empId = document.getElementById("empId").value.trim();
-  const department = document.getElementById("department").value.trim();
-  const designation = document.getElementById("designation").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
-
-  const msg = document.getElementById("msg");
-  const btn = document.getElementById("submitBtn");
-
-  if(!fullName || !empId || !department || !designation || !mobile){
-    msg.textContent = "All fields are required";
-    msg.className = "msg error";
+  if(Object.values(data).some(v=>!v)){
+    msg.textContent="All fields required";
+    msg.className="msg error";
     return;
   }
 
-  btn.disabled = true;
-  msg.textContent = "Submitting request...";
-  msg.className = "msg";
-
-  const payload = {
-    fullName,
-    empId,
-    department,
-    designation,
-    mobile,
-    status: "Pending",
-    time: new Date().toISOString()
-  };
+  btn.disabled=true;
+  msg.textContent="Submitting...";
+  msg.className="msg";
 
   fetch(SCRIPT_URL,{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify(payload)
+    body:JSON.stringify(data)
   })
-  .then(res => res.text())
-  .then(() => {
-    msg.textContent =
-      "Signup request submitted successfully. Please wait for admin approval.";
-    msg.className = "msg success";
-
-    setTimeout(()=>{
-      window.location.href = "index.html";
-    }, 1800);
+  .then(()=> {
+    msg.textContent="Signup submitted. Wait for admin approval.";
+    msg.className="msg success";
+    setTimeout(()=>location.href="index.html",1500);
   })
-  .catch(err=>{
-    console.error(err);
-    btn.disabled = false;
-    msg.textContent = "Network error. Please try again.";
-    msg.className = "msg error";
+  .catch(()=>{
+    btn.disabled=false;
+    msg.textContent="Network error";
+    msg.className="msg error";
   });
 }
 </script>
