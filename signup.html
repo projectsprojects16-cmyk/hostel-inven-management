@@ -70,6 +70,9 @@ button{
   <label>Full Name</label>
   <input id="name" placeholder="Enter Full Name">
 
+  <label>Designation</label>
+  <input id="designation" placeholder="e.g. Supervisor / Manager">
+
   <label>Mobile</label>
   <input id="mobile" placeholder="03XXXXXXXXX">
 
@@ -85,19 +88,25 @@ button{
 function signup(){
   const empId = empIdEl.value.trim();
   const name = nameEl.value.trim();
+  const designation = designationEl.value.trim();
   const mobile = mobileEl.value.trim();
   const email = emailEl.value.trim();
   const msg = document.getElementById("msg");
 
-  if(!empId || !name || !mobile || !email){
+  if(!empId || !name || !designation || !mobile || !email){
     msg.innerHTML = "All fields are required";
     msg.className = "msg error";
     return;
   }
 
   let signups = JSON.parse(localStorage.getItem("signups")) || [];
+
   signups.push({
-    empId, name, mobile, email,
+    empId,
+    name,
+    designation,
+    mobile,
+    email,
     status: "Pending",
     time: new Date().toISOString()
   });
@@ -114,6 +123,7 @@ function signup(){
 
 const empIdEl = document.getElementById("empId");
 const nameEl = document.getElementById("name");
+const designationEl = document.getElementById("designation");
 const mobileEl = document.getElementById("mobile");
 const emailEl = document.getElementById("email");
 </script>
