@@ -2,155 +2,120 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Signup Request</title>
+<title>Employee Signup</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background:#f1f5f9;
-}
-header{
-  background:#0f766e;
-  color:#fff;
-  padding:15px;
-  text-align:center;
-}
-.container{
-  padding:15px;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#0f766e,#115e59);
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .card{
   background:#fff;
-  padding:18px;
+  width:100%;
+  max-width:400px;
+  padding:25px;
   border-radius:12px;
-  box-shadow:0 5px 15px rgba(0,0,0,.1);
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+h2{
+  text-align:center;
+  color:#0f766e;
+  margin-bottom:20px;
 }
 label{
+  font-size:14px;
   font-weight:bold;
-  margin-top:12px;
-  display:block;
 }
 input{
   width:100%;
-  padding:10px;
-  margin-top:5px;
-  border-radius:6px;
+  padding:12px;
+  margin:8px 0 15px;
+  border-radius:8px;
   border:1px solid #ccc;
 }
 button{
   width:100%;
-  margin-top:20px;
   padding:12px;
   background:#0f766e;
   color:#fff;
   border:none;
   border-radius:8px;
   font-size:16px;
-}
-button:disabled{
-  background:#94a3b8;
+  cursor:pointer;
 }
 .msg{
-  margin-top:15px;
   text-align:center;
-  font-weight:bold;
+  margin-top:10px;
+  font-size:14px;
 }
+.success{color:green;}
+.error{color:red;}
 </style>
 </head>
 
 <body>
 
-<header>
-  <h2>Signup Request</h2>
-</header>
-
-<div class="container">
 <div class="card">
+  <h2>Employee Signup</h2>
 
-<form id="signupForm">
+  <label>Emp ID</label>
+  <input id="empId" placeholder="Enter Emp ID">
 
-<label>Full Name</label>
-<input id="name" required>
+  <label>Full Name</label>
+  <input id="name" placeholder="Enter Full Name">
 
-<label>Emp ID</label>
-<input id="empId" required>
+  <label>Mobile</label>
+  <input id="mobile" placeholder="03XXXXXXXXX">
 
-<label>Department</label>
-<input id="department" required>
+  <label>Email</label>
+  <input id="email" placeholder="example@email.com">
 
-<label>Mobile Number</label>
-<input id="mobile" required>
+  <button onclick="signup()">Signup</button>
 
-<label>Desired Login ID</label>
-<input id="loginId" required>
-
-<button id="submitBtn" disabled>Submit Signup Request</button>
-
-<div id="msg" class="msg"></div>
-
-</form>
-
-</div>
+  <div id="msg" class="msg"></div>
 </div>
 
 <script>
-/* ===== GOOGLE APPS SCRIPT URL ===== */
-const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbzMjMSDeI5HBNPBNQMQrW-RGNjkfMWH5QyAOx-YvDUC8M5NPum3V7tgipZi2RXj1pqc/exec";
+function signup(){
+  const empId = empIdEl.value.trim();
+  const name = nameEl.value.trim();
+  const mobile = mobileEl.value.trim();
+  const email = emailEl.value.trim();
+  const msg = document.getElementById("msg");
 
-const form = document.getElementById("signupForm");
-const submitBtn = document.getElementById("submitBtn");
-const msg = document.getElementById("msg");
-
-/* Enable submit */
-form.addEventListener("input", ()=>{
-  submitBtn.disabled = !(
-    name.value &&
-    empId.value &&
-    department.value &&
-    mobile.value &&
-    loginId.value
-  );
-});
-
-/* Submit signup */
-form.onsubmit = async e=>{
-  e.preventDefault();
-  submitBtn.disabled = true;
-
-  const data = {
-    action: "signup",
-    name: name.value,
-    empId: empId.value,
-    department: department.value,
-    mobile: mobile.value,
-    loginId: loginId.value,
-    time: new Date().toISOString()
-  };
-
-  try{
-    await fetch(SCRIPT_URL,{
-      method:"POST",
-      body: JSON.stringify(data)
-    });
-
-    msg.style.color = "green";
-    msg.innerText = "Signup request submitted. Please wait for admin approval.";
-
-    setTimeout(()=>{
-      location.href = "index.html";
-    },2000);
-
-  }catch(err){
-    msg.style.color = "red";
-    msg.innerText = "Network error. Please try again.";
-    submitBtn.disabled = false;
-    console.error(err);
+  if(!empId || !name || !mobile || !email){
+    msg.innerHTML = "All fields are required";
+    msg.className = "msg error";
+    return;
   }
 
-  form.reset();
-};
+  let signups = JSON.parse(localStorage.getItem("signups")) || [];
+  signups.push({
+    empId, name, mobile, email,
+    status: "Pending",
+    time: new Date().toISOString()
+  });
+
+  localStorage.setItem("signups", JSON.stringify(signups));
+
+  msg.innerHTML = "Signup submitted. Wait for admin approval.";
+  msg.className = "msg success";
+
+  setTimeout(()=>{
+    window.location.href="index.html";
+  },1500);
+}
+
+const empIdEl = document.getElementById("empId");
+const nameEl = document.getElementById("name");
+const mobileEl = document.getElementById("mobile");
+const emailEl = document.getElementById("email");
 </script>
 
 </body>
