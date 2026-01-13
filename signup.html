@@ -23,12 +23,12 @@ body{
   border-radius:12px;
   box-shadow:0 10px 25px rgba(0,0,0,.25);
 }
-h2{text-align:center;color:#0f766e}
+h2{text-align:center;color:#0f766e;margin-bottom:20px}
 label{font-size:14px;font-weight:bold}
 input{
   width:100%;
   padding:12px;
-  margin:8px 0 14px;
+  margin:6px 0 14px;
   border-radius:8px;
   border:1px solid #ccc;
 }
@@ -40,8 +40,8 @@ button{
   border:none;
   border-radius:8px;
   font-size:16px;
+  cursor:pointer;
 }
-button:disabled{background:#9ca3af}
 .msg{text-align:center;font-size:14px;margin-top:10px}
 .error{color:red}
 .success{color:green}
@@ -51,64 +51,58 @@ button:disabled{background:#9ca3af}
 <body>
 
 <div class="card">
-<h2>Signup Request</h2>
+  <h2>Signup Request</h2>
 
-<label>Full Name</label>
-<input id="fullName">
+  <label>Full Name</label>
+  <input id="fullName">
 
-<label>Emp ID</label>
-<input id="empId">
+  <label>Emp ID</label>
+  <input id="empId">
 
-<label>Department</label>
-<input id="department">
+  <label>Department</label>
+  <input id="department">
 
-<label>Designation</label>
-<input id="designation">
+  <label>Designation</label>
+  <input id="designation">
 
-<label>Mobile Number</label>
-<input id="mobile">
+  <label>Mobile</label>
+  <input id="mobile" placeholder="03XXXXXXXXX">
 
-<button id="btn" onclick="signup()">Submit Signup</button>
-<div id="msg" class="msg"></div>
+  <button onclick="submitSignup()">Submit</button>
+  <div id="msg" class="msg"></div>
 </div>
 
 <script>
 const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbx0BGsRqQSd-oDFxivNKCSKHh_IAJ8E8KcD5waPkNIX3nafCe1FCQdwYV8Dz8Fpgowe/exec";
+"https://script.google.com/macros/s/AKfycbzYBoKB2USFBxTKzT6inPolRwdVg_XrpBhzCLTfe2fwnQGulwJ22nkXQ9C_WbaO2_IL/exec";
 
-function signup(){
+function submitSignup(){
   const data = {
     fullName: fullName.value.trim(),
     empId: empId.value.trim(),
     department: department.value.trim(),
     designation: designation.value.trim(),
-    mobile: mobile.value.trim(),
-    time: new Date().toISOString()
+    mobile: mobile.value.trim()
   };
 
   if(Object.values(data).some(v=>!v)){
-    msg.textContent="All fields required";
+    msg.innerHTML="All fields required";
     msg.className="msg error";
     return;
   }
 
-  btn.disabled=true;
-  msg.textContent="Submitting...";
-  msg.className="msg";
-
   fetch(SCRIPT_URL,{
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify(data)
   })
-  .then(()=> {
-    msg.textContent="Signup submitted. Wait for admin approval.";
+  .then(r=>r.json())
+  .then(()=>{
+    msg.innerHTML="Signup submitted. Wait for approval.";
     msg.className="msg success";
     setTimeout(()=>location.href="index.html",1500);
   })
   .catch(()=>{
-    btn.disabled=false;
-    msg.textContent="Network error";
+    msg.innerHTML="Network error";
     msg.className="msg error";
   });
 }
