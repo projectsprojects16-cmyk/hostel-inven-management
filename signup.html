@@ -1,147 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Employee Signup</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>Signup Request</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f766e, #115e59);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#0f766e,#115e59);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
-    .card {
-      background: #fff;
-      width: 100%;
-      max-width: 420px;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    }
+.card{
+  background:#fff;
+  width:100%;
+  max-width:420px;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.25);
+}
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #0f766e;
-    }
+h2{
+  text-align:center;
+  color:#0f766e;
+  margin-bottom:20px;
+}
 
-    label {
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 6px;
-      display: block;
-    }
+label{
+  font-size:14px;
+  font-weight:bold;
+  margin-bottom:6px;
+  display:block;
+}
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 14px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
+input{
+  width:100%;
+  padding:12px;
+  margin-bottom:14px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0f766e;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+button{
+  width:100%;
+  padding:12px;
+  background:#0f766e;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
 
-    .msg {
-      margin-top: 12px;
-      text-align: center;
-      font-size: 14px;
-    }
+.msg{
+  margin-top:12px;
+  text-align:center;
+  font-size:14px;
+}
 
-    .error { color: red; }
-    .success { color: green; }
-  </style>
+.error{color:red;}
+.success{color:green;}
+</style>
 </head>
 
 <body>
 
 <div class="card">
-  <h2>Employee Signup</h2>
+  <h2>Signup Request</h2>
 
-  <label>Employee ID</label>
-  <input type="text" id="empId" placeholder="Enter Emp ID">
+  <label>Full Name</label>
+  <input type="text" id="fullName" placeholder="Enter Full Name">
 
-  <label>Employee Name</label>
-  <input type="text" id="empName" placeholder="Enter Full Name">
-
-  <label>Designation</label>
-  <input type="text" id="designation" placeholder="Enter Designation">
+  <label>Emp ID</label>
+  <input type="text" id="empId" placeholder="Enter Employee ID">
 
   <label>Department</label>
   <input type="text" id="department" placeholder="Enter Department">
 
+  <label>Designation</label>
+  <input type="text" id="designation" placeholder="Enter Designation">
+
   <label>Mobile Number</label>
   <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
 
-  <button onclick="signup()">Signup</button>
+  <button onclick="submitSignup()">Submit Signup Request</button>
 
   <div id="msg" class="msg"></div>
 </div>
 
 <script>
-  /* 🔗 GOOGLE APPS SCRIPT URL (Signup Script) */
-  const SCRIPT_URL =
-    "https://script.google.com/macros/s/YOUR_SIGNUP_SCRIPT_URL/exec";
+/* 🔗 GOOGLE APPS SCRIPT SIGNUP WEB APP URL */
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/YOUR_SIGNUP_SCRIPT_URL/exec";
 
-  function signup() {
-    const empId = document.getElementById("empId").value.trim();
-    const empName = document.getElementById("empName").value.trim();
-    const designation = document.getElementById("designation").value.trim();
-    const department = document.getElementById("department").value.trim();
-    const mobile = document.getElementById("mobile").value.trim();
-    const msg = document.getElementById("msg");
+function submitSignup(){
+  const fullName = document.getElementById("fullName").value.trim();
+  const empId = document.getElementById("empId").value.trim();
+  const department = document.getElementById("department").value.trim();
+  const designation = document.getElementById("designation").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const msg = document.getElementById("msg");
 
-    if (!empId || !empName || !designation || !department || !mobile) {
-      msg.innerHTML = "All fields are required";
-      msg.className = "msg error";
-      return;
-    }
-
-    const data = {
-      empId,
-      empName,
-      designation,
-      department,
-      mobile,
-      status: "Pending",
-      time: new Date().toISOString()
-    };
-
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(data)
-    })
-    .then(() => {
-      msg.innerHTML =
-        "Signup submitted successfully. Please wait for admin approval.";
-      msg.className = "msg success";
-
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 1500);
-    })
-    .catch(err => {
-      console.error(err);
-      msg.innerHTML = "Network error. Please try again.";
-      msg.className = "msg error";
-    });
+  if(!fullName || !empId || !department || !designation || !mobile){
+    msg.innerHTML = "All fields are required";
+    msg.className = "msg error";
+    return;
   }
+
+  const data = {
+    fullName,
+    empId,
+    department,
+    designation,
+    mobile,
+    status: "Pending",
+    time: new Date().toISOString()
+  };
+
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify(data)
+  })
+  .then(()=>{
+    msg.innerHTML =
+      "Signup request submitted successfully. Wait for admin approval.";
+    msg.className="msg success";
+
+    setTimeout(()=>{
+      window.location.href="index.html";
+    },1500);
+  })
+  .catch(err=>{
+    console.error(err);
+    msg.innerHTML="Network error. Please try again.";
+    msg.className="msg error";
+  });
+}
 </script>
 
 </body>
