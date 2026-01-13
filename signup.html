@@ -58,6 +58,11 @@ button{
   cursor:pointer;
 }
 
+button:disabled{
+  background:#9ca3af;
+  cursor:not-allowed;
+}
+
 .msg{
   margin-top:12px;
   text-align:center;
@@ -89,7 +94,9 @@ button{
   <label>Mobile Number</label>
   <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
 
-  <button onclick="submitSignup()">Submit Signup Request</button>
+  <button id="submitBtn" onclick="submitSignup()">
+    Submit Signup Request
+  </button>
 
   <div id="msg" class="msg"></div>
 </div>
@@ -100,20 +107,27 @@ const SCRIPT_URL =
   "https://script.google.com/macros/s/YOUR_SIGNUP_SCRIPT_URL/exec";
 
 function submitSignup(){
+
   const fullName = document.getElementById("fullName").value.trim();
   const empId = document.getElementById("empId").value.trim();
   const department = document.getElementById("department").value.trim();
   const designation = document.getElementById("designation").value.trim();
   const mobile = document.getElementById("mobile").value.trim();
+
   const msg = document.getElementById("msg");
+  const btn = document.getElementById("submitBtn");
 
   if(!fullName || !empId || !department || !designation || !mobile){
-    msg.innerHTML = "All fields are required";
+    msg.textContent = "All fields are required";
     msg.className = "msg error";
     return;
   }
 
-  const data = {
+  btn.disabled = true;
+  msg.textContent = "Submitting request...";
+  msg.className = "msg";
+
+  const payload = {
     fullName,
     empId,
     department,
@@ -125,21 +139,24 @@ function submitSignup(){
 
   fetch(SCRIPT_URL,{
     method:"POST",
-    body:JSON.stringify(data)
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
   })
-  .then(()=>{
-    msg.innerHTML =
-      "Signup request submitted successfully. Wait for admin approval.";
-    msg.className="msg success";
+  .then(res => res.text())
+  .then(() => {
+    msg.textContent =
+      "Signup request submitted successfully. Please wait for admin approval.";
+    msg.className = "msg success";
 
     setTimeout(()=>{
-      window.location.href="index.html";
-    },1500);
+      window.location.href = "index.html";
+    }, 1800);
   })
   .catch(err=>{
     console.error(err);
-    msg.innerHTML="Network error. Please try again.";
-    msg.className="msg error";
+    btn.disabled = false;
+    msg.textContent = "Network error. Please try again.";
+    msg.className = "msg error";
   });
 }
 </script>
