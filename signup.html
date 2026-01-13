@@ -2,45 +2,59 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Hostel Management</title>
+<title>Signup Request</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;background:#f1f5f9}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f1f5f9;
+}
 header{
-  background:#0f766e;color:#fff;padding:15px;
-  display:flex;justify-content:space-between;align-items:center
+  background:#0f766e;
+  color:#fff;
+  padding:15px;
+  text-align:center;
 }
-header button{
-  background:#fff;color:#0f766e;border:none;
-  padding:8px 14px;border-radius:6px;font-weight:bold
+.container{
+  padding:15px;
 }
-.container{padding:15px}
 .card{
-  background:#fff;padding:15px;border-radius:10px;
-  box-shadow:0 5px 15px rgba(0,0,0,.1)
+  background:#fff;
+  padding:18px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,.1);
 }
-label{font-weight:bold;margin-top:12px;display:block}
-input,select{
-  width:100%;padding:10px;margin-top:5px;
-  border-radius:6px;border:1px solid #ccc
+label{
+  font-weight:bold;
+  margin-top:12px;
+  display:block;
 }
-.preview{
-  width:100%;max-height:200px;margin-top:8px;border-radius:6px;
-  object-fit:cover
+input{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:1px solid #ccc;
 }
-button.submit{
-  width:100%;margin-top:20px;padding:12px;
-  background:#0f766e;color:#fff;border:none;
-  border-radius:8px;font-size:16px
+button{
+  width:100%;
+  margin-top:20px;
+  padding:12px;
+  background:#0f766e;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
 }
-button.submit:disabled{background:#94a3b8}
-.info{margin-top:10px;color:#b91c1c;font-size:14px}
-.success{
-  background:#16a34a;color:#fff;
-  padding:10px;border-radius:8px;
-  margin-bottom:15px;text-align:center;font-weight:bold;
-  display:none
+button:disabled{
+  background:#94a3b8;
+}
+.msg{
+  margin-top:15px;
+  text-align:center;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -48,180 +62,94 @@ button.submit:disabled{background:#94a3b8}
 <body>
 
 <header>
-  <h2>Hostel Management</h2>
-  <button onclick="location.href='hostel_export.html'">Export</button>
+  <h2>Signup Request</h2>
 </header>
 
 <div class="container">
-
-<div id="successMsg" class="success">Submitted successfully</div>
-
 <div class="card">
-<form id="form">
 
-<label>Hostel Name</label>
-<select id="hostelName" required>
-  <option value="">Select Hostel</option>
-  <option>Vigo</option><option>STPL</option><option>Champion</option>
-  <option>Saddiq</option><option>Colony</option><option>Murree</option>
-</select>
+<form id="signupForm">
+
+<label>Full Name</label>
+<input id="name" required>
 
 <label>Emp ID</label>
 <input id="empId" required>
-<div id="info" class="info"></div>
-
-<label>Emp Name</label>
-<input id="empName" required>
 
 <label>Department</label>
 <input id="department" required>
 
-<label>Emergency Contact Name</label>
-<input id="emergencyName" required>
-
-<label>Relation With Employee</label>
-<input id="emergencyRelation" required>
-
-<label>Personal Mobile Number</label>
+<label>Mobile Number</label>
 <input id="mobile" required>
 
-<label>Permanent Address (CNIC)</label>
-<input id="address" required>
+<label>Desired Login ID</label>
+<input id="loginId" required>
 
-<label>Hostel Joining Date</label>
-<input type="date" id="joinDate" required>
+<button id="submitBtn" disabled>Submit Signup Request</button>
 
-<label>Hostel Leaving Date</label>
-<input type="date" id="leaveDate">
-
-<label>CNIC Picture (2×4)</label>
-<input type="file" id="cnicPic" accept="image/*" capture="environment" required>
-<img id="cnicPreview" class="preview">
-
-<label>Emp Card Picture (2×4)</label>
-<input type="file" id="empCardPic" accept="image/*" capture="environment" required>
-<img id="empPreview" class="preview">
-
-<button class="submit" id="submitBtn" disabled>Submit</button>
+<div id="msg" class="msg"></div>
 
 </form>
+
 </div>
 </div>
 
 <script>
-/* LOGIN */
-const loggedInUser=localStorage.getItem("loggedInUser");
-if(!loggedInUser) location.href="index.html";
+/* ===== GOOGLE APPS SCRIPT URL ===== */
+const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbzMjMSDeI5HBNPBNQMQrW-RGNjkfMWH5QyAOx-YvDUC8M5NPum3V7tgipZi2RXj1pqc/exec";
 
-const SCRIPT_URL="https://script.google.com/macros/s/AKfycbzMjMSDeI5HBNPBNQMQrW-RGNjkfMWH5QyAOx-YvDUC8M5NPum3V7tgipZi2RXj1pqc/exec";
+const form = document.getElementById("signupForm");
+const submitBtn = document.getElementById("submitBtn");
+const msg = document.getElementById("msg");
 
-const successMsg=document.getElementById("successMsg");
-const submitBtn=document.getElementById("submitBtn");
-const info=document.getElementById("info");
-
-let records=JSON.parse(localStorage.getItem("hostelRecords"))||[];
-let editIndex=-1;
-
-/* Hide success when new Emp ID typing */
-empId.addEventListener("input",()=>successMsg.style.display="none");
-
-/* Resize image to 2×4 */
-function resizeImage(file,w=200,h=400){
-  return new Promise(r=>{
-    const i=new Image();
-    i.onload=()=>{
-      const c=document.createElement("canvas");
-      c.width=w;c.height=h;
-      c.getContext("2d").drawImage(i,0,0,w,h);
-      r(c.toDataURL("image/png"));
-    };
-    i.src=URL.createObjectURL(file);
-  });
-}
-
-cnicPic.onchange=async()=>cnicPreview.src=await resizeImage(cnicPic.files[0]);
-empCardPic.onchange=async()=>empPreview.src=await resizeImage(empCardPic.files[0]);
-
-/* Emp ID Enter */
-empId.addEventListener("keydown",e=>{
-  if(e.key==="Enter"){e.preventDefault();loadExisting();}
+/* Enable submit */
+form.addEventListener("input", ()=>{
+  submitBtn.disabled = !(
+    name.value &&
+    empId.value &&
+    department.value &&
+    mobile.value &&
+    loginId.value
+  );
 });
 
-function loadExisting(){
-  editIndex=records.findIndex(r=>r.empId===empId.value && !r.leaveDate);
-  if(editIndex>-1){
-    const r=records[editIndex];
-    hostelName.value=r.hostelName;
-    empName.value=r.empName;
-    department.value=r.department;
-    emergencyName.value=r.emergencyName;
-    emergencyRelation.value=r.emergencyRelation;
-    mobile.value=r.mobile;
-    address.value=r.address;
-    joinDate.value=r.joinDate;
-    cnicPreview.src=r.cnicPic;
-    empPreview.src=r.empCardPic;
-
-    cnicPic.required=false;
-    empCardPic.required=false;
-    submitBtn.disabled=true;
-    info.innerText="Active record found. Enter Leaving Date to update.";
-  }else{
-    info.innerText="";
-    cnicPic.required=true;
-    empCardPic.required=true;
-  }
-}
-
-/* Validation */
-form.addEventListener("input",()=>{
-  if(editIndex>-1){
-    submitBtn.disabled=!leaveDate.value;
-  }else{
-    submitBtn.disabled=!(
-      hostelName.value&&empId.value&&empName.value&&
-      department.value&&emergencyName.value&&
-      emergencyRelation.value&&mobile.value&&
-      address.value&&joinDate.value&&
-      cnicPic.files.length&&empCardPic.files.length
-    );
-  }
-});
-
-/* Submit */
-form.onsubmit=async e=>{
+/* Submit signup */
+form.onsubmit = async e=>{
   e.preventDefault();
-  submitBtn.disabled=true;
+  submitBtn.disabled = true;
 
-  if(editIndex>-1){
-    records[editIndex].leaveDate=leaveDate.value;
-  }else{
-    records.push({
-      enteredBy:loggedInUser,
-      hostelName:hostelName.value,
-      empId:empId.value,
-      empName:empName.value,
-      department:department.value,
-      emergencyName:emergencyName.value,
-      emergencyRelation:emergencyRelation.value,
-      mobile:mobile.value,
-      address:address.value,
-      joinDate:joinDate.value,
-      leaveDate:"",
-      cnicPic:cnicPreview.src,
-      empCardPic:empPreview.src,
-      time:new Date().toISOString()
+  const data = {
+    action: "signup",
+    name: name.value,
+    empId: empId.value,
+    department: department.value,
+    mobile: mobile.value,
+    loginId: loginId.value,
+    time: new Date().toISOString()
+  };
+
+  try{
+    await fetch(SCRIPT_URL,{
+      method:"POST",
+      body: JSON.stringify(data)
     });
+
+    msg.style.color = "green";
+    msg.innerText = "Signup request submitted. Please wait for admin approval.";
+
+    setTimeout(()=>{
+      location.href = "index.html";
+    },2000);
+
+  }catch(err){
+    msg.style.color = "red";
+    msg.innerText = "Network error. Please try again.";
+    submitBtn.disabled = false;
+    console.error(err);
   }
 
-  localStorage.setItem("hostelRecords",JSON.stringify(records));
-  try{await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify(records.at(-1))});}catch(e){}
-
-  successMsg.style.display="block";
   form.reset();
-  submitBtn.disabled=true;
-  editIndex=-1;
-  info.innerText="";
 };
 </script>
 
