@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Employee Login</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login – Hostel App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
   margin:0;
-  font-family:Arial;
+  font-family:Arial, sans-serif;
   background:linear-gradient(135deg,#0f766e,#115e59);
-  height:100vh;
+  min-height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -18,17 +18,17 @@ body{
 .card{
   background:#fff;
   width:100%;
-  max-width:380px;
+  max-width:420px;
   padding:25px;
   border-radius:12px;
-  box-shadow:0 10px 25px rgba(0,0,0,.2);
+  box-shadow:0 10px 25px rgba(0,0,0,.25);
 }
-h2{text-align:center;color:#0f766e}
-label{font-weight:bold;font-size:14px}
+h2{text-align:center;color:#0f766e;margin-bottom:20px}
+label{font-weight:bold;font-size:14px;margin-top:10px}
 input{
   width:100%;
   padding:12px;
-  margin:8px 0 15px;
+  margin:6px 0 14px;
   border-radius:8px;
   border:1px solid #ccc;
 }
@@ -40,102 +40,111 @@ button{
   border:none;
   border-radius:8px;
   font-size:16px;
+  cursor:pointer;
 }
-.msg{text-align:center;font-size:14px}
+.msg{text-align:center;margin-top:10px;font-size:14px}
 .error{color:red}
 .success{color:green}
 .info{color:#0f766e}
-.hidden{display:none}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-<h2>Employee Login</h2>
+  <h2>Employee Login</h2>
 
-<label>Emp ID</label>
-<input id="empId">
+  <label>Employee ID</label>
+  <input id="empId" placeholder="Enter your Emp ID">
 
-<label>Password</label>
-<input type="password" id="password">
-
-<div id="firstTime" class="hidden">
-  <label>New Password</label>
-  <input type="password" id="newPass">
+  <label>Password</label>
+  <input type="password" id="password" placeholder="Enter Password">
 
   <label>Confirm Password</label>
-  <input type="password" id="confirmPass">
-</div>
+  <input type="password" id="confirmPass" placeholder="Confirm Password">
 
-<button onclick="login()">Login</button>
-<div id="msg" class="msg"></div>
+  <button onclick="login()">Login</button>
+
+  <div id="msg" class="msg"></div>
 </div>
 
 <script>
 const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbzYBoKB2USFBxTKzT6inPolRwdVg_XrpBhzCLTfe2fwnQGulwJ22nkXQ9C_WbaO2_IL/exec";
+"https://script.google.com/macros/s/AKfycbymLQ5JwOQE3-lebOVdptjzOf-BcW6aEaJwG7IT2cITP_bHKQ1bouognnEEbtJhAsMx/exec";
 
 async function login(){
-  const msg=document.getElementById("msg");
+  const empId = document.getElementById("empId").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const confirmPass = document.getElementById("confirmPass").value.trim();
+  const msg = document.getElementById("msg");
 
-  if(!empId.value || !password.value){
-    msg.innerHTML="EmpID & Password required";
+  if(!empId || !pass || !confirmPass){
+    msg.innerHTML = "All fields are required";
     msg.className="msg error";
     return;
   }
 
-  const res=await fetch(SCRIPT_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"login",
-      empId:empId.value,
-      password:password.value
-    })
-  });
-
-  const r=await res.json();
-
-  if(r.status==="NOT_APPROVED"){
-    msg.innerHTML="Admin approval required";
+  if(pass !== confirmPass){
+    msg.innerHTML = "Passwords do not match";
     msg.className="msg error";
+    return;
   }
-  else if(r.status==="FIRST_TIME"){
-    firstTime.classList.remove("hidden");
-    msg.innerHTML="Set new password";
-    msg.className="msg info";
+
+  msg.innerHTML="Checking...";
+  msg.className="msg info";
+
+  try{
+    const res = await fetch(SCRIPT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        action:"login",
+        empId,
+        password:pass
+      })
+    });
+
+    const r = await res.json();
+
+    if(r.status==="NOT_APPROVED"){
+      msg.innerHTML="Admin approval required";
+      msg.className="msg error";
+      return;
+    }
+    if(r.status==="FIRST_TIME"){
+      msg.innerHTML="First time login — setting password";
+      msg.className="msg info";
+
+      await fetch(SCRIPT_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          action:"setPassword",
+          empId,
+          newPassword:pass
+        })
+      });
+
+      localStorage.setItem("loggedInUser",empId);
+      location.href="dashboard.html";
+      return;
+    }
+    if(r.status==="INVALID"){
+      msg.innerHTML="Invalid credentials";
+      msg.className="msg error";
+      return;
+    }
+    if(r.status==="SUCCESS"){
+      localStorage.setItem("loggedInUser",empId);
+      location.href="dashboard.html";
+    }
   }
-  else if(r.status==="INVALID"){
-    msg.innerHTML="Wrong password";
+  catch(err){
+    console.error(err);
+    msg.innerHTML="Network error";
     msg.className="msg error";
-  }
-  else if(r.status==="SUCCESS"){
-    localStorage.setItem("loggedInUser",empId.value);
-    location.href="dashboard.html";
   }
 }
-
-confirmPass.addEventListener("keydown",async e=>{
-  if(e.key!=="Enter") return;
-
-  if(newPass.value!==confirmPass.value){
-    msg.innerHTML="Passwords do not match";
-    msg.className="msg error";
-    return;
-  }
-
-  await fetch(SCRIPT_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"setPassword",
-      empId:empId.value,
-      newPassword:newPass.value
-    })
-  });
-
-  localStorage.setItem("loggedInUser",empId.value);
-  location.href="dashboard.html";
-});
 </script>
 
 </body>
