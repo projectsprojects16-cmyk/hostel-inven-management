@@ -52,6 +52,10 @@ button{
   font-size:16px;
   cursor:pointer;
 }
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
 .msg{
   margin-top:12px;
   text-align:center;
@@ -83,13 +87,13 @@ button{
   <label>Mobile</label>
   <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
 
-  <button onclick="submitSignup()">Submit Signup</button>
+  <button id="btn" onclick="submitSignup()">Submit Signup</button>
 
   <div id="msg" class="msg"></div>
 </div>
 
 <script>
-/* ✅ YOUR APPS SCRIPT WEB APP URL */
+/* ✅ YOUR VERIFIED APPS SCRIPT WEB APP URL */
 const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbxKCNSbwVB54NJZZdlUJbeaVASCRlq8o5b3Sn0PXPgHtm91CVOcpLGNehMJ3c3ANJvk/exec";
 
@@ -100,45 +104,53 @@ function submitSignup(){
   const designation = document.getElementById("designation").value.trim();
   const mobile = document.getElementById("mobile").value.trim();
   const msg = document.getElementById("msg");
+  const btn = document.getElementById("btn");
 
   if(!fullName || !empId || !department || !designation || !mobile){
-    msg.innerHTML = "All fields are required";
+    msg.textContent = "All fields are required";
     msg.className = "msg error";
     return;
   }
 
-  msg.innerHTML = "Submitting...";
+  btn.disabled = true;
+  msg.textContent = "Submitting...";
   msg.className = "msg info";
 
   fetch(SCRIPT_URL,{
     method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
     body: JSON.stringify({
-      fullName,
-      empId,
-      department,
-      designation,
-      mobile
+      fullName: fullName,
+      empId: empId,
+      department: department,
+      designation: designation,
+      mobile: mobile
     })
   })
-  .then(r => r.json())
-  .then(res => {
-    if(res.status === "OK"){
-      msg.innerHTML =
-        "Signup successful. Waiting for admin approval.";
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === "SUCCESS"){
+      msg.textContent =
+        "Signup submitted successfully. Waiting for admin approval.";
       msg.className = "msg success";
 
       setTimeout(()=>{
         window.location.href = "login.html";
-      },1500);
+      }, 1500);
+
     }else{
-      msg.innerHTML = "Error: " + res.status;
+      msg.textContent = "Error: " + (data.message || data.status);
       msg.className = "msg error";
+      btn.disabled = false;
     }
   })
   .catch(err=>{
     console.error(err);
-    msg.innerHTML = "Network error. Try again.";
+    msg.textContent = "Network error. Please try again.";
     msg.className = "msg error";
+    btn.disabled = false;
   });
 }
 </script>
