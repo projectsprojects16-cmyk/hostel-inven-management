@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Login – Hostel App</title>
+<title>Signup – Hostel App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -52,6 +52,9 @@ button{
   font-size:16px;
   cursor:pointer;
 }
+button:hover{
+  opacity:.9;
+}
 .msg{
   margin-top:12px;
   text-align:center;
@@ -60,140 +63,100 @@ button{
 .error{color:red;}
 .success{color:green;}
 .info{color:#0f766e;}
-.hidden{display:none;}
+.link{
+  text-align:center;
+  margin-top:10px;
+}
+.link a{
+  color:#0f766e;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:bold;
+}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h2 id="title">Employee Login</h2>
+  <h2>Signup Request</h2>
 
-  <!-- LOGIN FORM -->
-  <div id="loginBox">
-    <label>Emp ID</label>
-    <input type="text" id="empId" placeholder="Enter Emp ID">
+  <label>Full Name</label>
+  <input type="text" id="fullName" placeholder="Enter Full Name">
 
-    <label>Password</label>
-    <input type="password" id="password" placeholder="Enter Password">
+  <label>Emp ID</label>
+  <input type="text" id="empId" placeholder="Enter Employee ID">
 
-    <button onclick="login()">Login</button>
-  </div>
+  <label>Department</label>
+  <input type="text" id="department" placeholder="Enter Department">
 
-  <!-- FIRST TIME PASSWORD SET -->
-  <div id="setPasswordBox" class="hidden">
-    <label>New Password</label>
-    <input type="password" id="newPass" placeholder="Enter New Password">
+  <label>Designation</label>
+  <input type="text" id="designation" placeholder="Enter Designation">
 
-    <label>Confirm Password</label>
-    <input type="password" id="confirmPass" placeholder="Confirm Password">
+  <label>Mobile</label>
+  <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
 
-    <button onclick="setPassword()">Set Password</button>
-  </div>
+  <button onclick="submitSignup()">Submit Signup</button>
 
   <div id="msg" class="msg"></div>
+
+  <div class="link">
+    <a href="login.html">Already have account? Login</a>
+  </div>
 </div>
 
 <script>
+/* 🔴 APNA LATEST DEPLOYED WEB APP URL YAHAN PASTE KARO */
 const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbxKCNSbwVB54NJZZdlUJbeaVASCRlq8o5b3Sn0PXPgHtm91CVOcpLGNehMJ3c3ANJvk/exec";
 
-let CURRENT_EMP_ID = "";
-
-function login(){
+function submitSignup(){
+  const fullName = document.getElementById("fullName").value.trim();
   const empId = document.getElementById("empId").value.trim();
-  const password = document.getElementById("password").value.trim();
+  const department = document.getElementById("department").value.trim();
+  const designation = document.getElementById("designation").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
   const msg = document.getElementById("msg");
 
-  if(!empId || !password){
-    msg.innerHTML = "Emp ID & Password required";
+  if(!fullName || !empId || !department || !designation || !mobile){
+    msg.innerHTML = "All fields are required";
     msg.className = "msg error";
     return;
   }
 
-  msg.innerHTML = "Checking...";
+  msg.innerHTML = "Submitting request...";
   msg.className = "msg info";
 
   fetch(SCRIPT_URL,{
     method:"POST",
+    headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
-      action: "login",
+      action: "signup",
+      fullName,
       empId,
-      password
+      department,
+      designation,
+      mobile,
+      time: new Date().toLocaleString()
     })
   })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res.status === "NOT_APPROVED"){
-      msg.innerHTML = "Not approved by admin yet";
-      msg.className = "msg error";
-    }
-    else if(res.status === "FIRST_TIME"){
-      CURRENT_EMP_ID = empId;
-      document.getElementById("loginBox").classList.add("hidden");
-      document.getElementById("setPasswordBox").classList.remove("hidden");
-      document.getElementById("title").innerText = "Set New Password";
-      msg.innerHTML = "First time login – set password";
-      msg.className = "msg info";
-    }
-    else if(res.status === "SUCCESS"){
-      msg.innerHTML = "Login successful";
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === "success"){
+      msg.innerHTML =
+        "Signup submitted. Wait for admin approval.";
       msg.className = "msg success";
+
       setTimeout(()=>{
-        window.location.href = "dashboard.html";
-      },800);
-    }
-    else{
-      msg.innerHTML = "Invalid Emp ID or Password";
-      msg.className = "msg error";
-    }
-  })
-  .catch(()=>{
-    msg.innerHTML = "Network error";
-    msg.className = "msg error";
-  });
-}
-
-function setPassword(){
-  const p1 = document.getElementById("newPass").value.trim();
-  const p2 = document.getElementById("confirmPass").value.trim();
-  const msg = document.getElementById("msg");
-
-  if(!p1 || !p2){
-    msg.innerHTML = "Both fields required";
-    msg.className = "msg error";
-    return;
-  }
-  if(p1 !== p2){
-    msg.innerHTML = "Passwords do not match";
-    msg.className = "msg error";
-    return;
-  }
-
-  msg.innerHTML = "Saving password...";
-  msg.className = "msg info";
-
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    body: JSON.stringify({
-      action: "setPassword",
-      empId: CURRENT_EMP_ID,
-      newPassword: p1
-    })
-  })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res.status === "SAVED"){
-      msg.innerHTML = "Password saved. Login again.";
-      msg.className = "msg success";
-      setTimeout(()=>location.reload(),1200);
+        window.location.href = "login.html";
+      },2000);
     }else{
-      msg.innerHTML = "Error saving password";
+      msg.innerHTML = data.message || "Signup failed";
       msg.className = "msg error";
     }
   })
   .catch(()=>{
-    msg.innerHTML = "Network error";
+    msg.innerHTML = "Network error. Please try again.";
     msg.className = "msg error";
   });
 }
