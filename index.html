@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Signup – Hostel App</title>
+<title>Login – Hostel App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -52,10 +52,6 @@ button{
   font-size:16px;
   cursor:pointer;
 }
-button:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-}
 .msg{
   margin-top:12px;
   text-align:center;
@@ -64,93 +60,141 @@ button:disabled{
 .error{color:red;}
 .success{color:green;}
 .info{color:#0f766e;}
+.hidden{display:none;}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h2>Signup Request</h2>
+  <h2 id="title">Employee Login</h2>
 
-  <label>Full Name</label>
-  <input type="text" id="fullName" placeholder="Enter Full Name">
+  <!-- LOGIN FORM -->
+  <div id="loginBox">
+    <label>Emp ID</label>
+    <input type="text" id="empId" placeholder="Enter Emp ID">
 
-  <label>Emp ID</label>
-  <input type="text" id="empId" placeholder="Enter Employee ID">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Enter Password">
 
-  <label>Department</label>
-  <input type="text" id="department" placeholder="Enter Department">
+    <button onclick="login()">Login</button>
+  </div>
 
-  <label>Designation</label>
-  <input type="text" id="designation" placeholder="Enter Designation">
+  <!-- FIRST TIME PASSWORD SET -->
+  <div id="setPasswordBox" class="hidden">
+    <label>New Password</label>
+    <input type="password" id="newPass" placeholder="Enter New Password">
 
-  <label>Mobile</label>
-  <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
+    <label>Confirm Password</label>
+    <input type="password" id="confirmPass" placeholder="Confirm Password">
 
-  <button id="btn" onclick="submitSignup()">Submit Signup</button>
+    <button onclick="setPassword()">Set Password</button>
+  </div>
 
   <div id="msg" class="msg"></div>
 </div>
 
 <script>
-/* ✅ YOUR VERIFIED APPS SCRIPT WEB APP URL */
 const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbxKCNSbwVB54NJZZdlUJbeaVASCRlq8o5b3Sn0PXPgHtm91CVOcpLGNehMJ3c3ANJvk/exec";
 
-function submitSignup(){
-  const fullName = document.getElementById("fullName").value.trim();
-  const empId = document.getElementById("empId").value.trim();
-  const department = document.getElementById("department").value.trim();
-  const designation = document.getElementById("designation").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
-  const msg = document.getElementById("msg");
-  const btn = document.getElementById("btn");
+let CURRENT_EMP_ID = "";
 
-  if(!fullName || !empId || !department || !designation || !mobile){
-    msg.textContent = "All fields are required";
+function login(){
+  const empId = document.getElementById("empId").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const msg = document.getElementById("msg");
+
+  if(!empId || !password){
+    msg.innerHTML = "Emp ID & Password required";
     msg.className = "msg error";
     return;
   }
 
-  btn.disabled = true;
-  msg.textContent = "Submitting...";
+  msg.innerHTML = "Checking...";
   msg.className = "msg info";
 
   fetch(SCRIPT_URL,{
     method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
     body: JSON.stringify({
-      fullName: fullName,
-      empId: empId,
-      department: department,
-      designation: designation,
-      mobile: mobile
+      action: "login",
+      empId,
+      password
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    if(data.status === "SUCCESS"){
-      msg.textContent =
-        "Signup submitted successfully. Waiting for admin approval.";
-      msg.className = "msg success";
-
-      setTimeout(()=>{
-        window.location.href = "login.html";
-      }, 1500);
-
-    }else{
-      msg.textContent = "Error: " + (data.message || data.status);
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.status === "NOT_APPROVED"){
+      msg.innerHTML = "Not approved by admin yet";
       msg.className = "msg error";
-      btn.disabled = false;
+    }
+    else if(res.status === "FIRST_TIME"){
+      CURRENT_EMP_ID = empId;
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("setPasswordBox").classList.remove("hidden");
+      document.getElementById("title").innerText = "Set New Password";
+      msg.innerHTML = "First time login – set password";
+      msg.className = "msg info";
+    }
+    else if(res.status === "SUCCESS"){
+      msg.innerHTML = "Login successful";
+      msg.className = "msg success";
+      setTimeout(()=>{
+        window.location.href = "dashboard.html";
+      },800);
+    }
+    else{
+      msg.innerHTML = "Invalid Emp ID or Password";
+      msg.className = "msg error";
     }
   })
-  .catch(err=>{
-    console.error(err);
-    msg.textContent = "Network error. Please try again.";
+  .catch(()=>{
+    msg.innerHTML = "Network error";
     msg.className = "msg error";
-    btn.disabled = false;
+  });
+}
+
+function setPassword(){
+  const p1 = document.getElementById("newPass").value.trim();
+  const p2 = document.getElementById("confirmPass").value.trim();
+  const msg = document.getElementById("msg");
+
+  if(!p1 || !p2){
+    msg.innerHTML = "Both fields required";
+    msg.className = "msg error";
+    return;
+  }
+  if(p1 !== p2){
+    msg.innerHTML = "Passwords do not match";
+    msg.className = "msg error";
+    return;
+  }
+
+  msg.innerHTML = "Saving password...";
+  msg.className = "msg info";
+
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body: JSON.stringify({
+      action: "setPassword",
+      empId: CURRENT_EMP_ID,
+      newPassword: p1
+    })
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.status === "SAVED"){
+      msg.innerHTML = "Password saved. Login again.";
+      msg.className = "msg success";
+      setTimeout(()=>location.reload(),1200);
+    }else{
+      msg.innerHTML = "Error saving password";
+      msg.className = "msg error";
+    }
+  })
+  .catch(()=>{
+    msg.innerHTML = "Network error";
+    msg.className = "msg error";
   });
 }
 </script>
