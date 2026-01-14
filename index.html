@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Employee Signup</title>
+<title>Signup – Hostel App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -21,7 +21,7 @@ body{
   max-width:420px;
   padding:25px;
   border-radius:12px;
-  box-shadow:0 10px 25px rgba(0,0,0,.2);
+  box-shadow:0 10px 25px rgba(0,0,0,.25);
 }
 h2{
   text-align:center;
@@ -29,15 +29,18 @@ h2{
   margin-bottom:20px;
 }
 label{
-  font-weight:bold;
   font-size:14px;
+  font-weight:bold;
+  margin-bottom:6px;
+  display:block;
 }
 input{
   width:100%;
   padding:12px;
-  margin:6px 0 14px;
+  margin-bottom:14px;
   border-radius:8px;
   border:1px solid #ccc;
+  font-size:15px;
 }
 button{
   width:100%;
@@ -49,101 +52,94 @@ button{
   font-size:16px;
   cursor:pointer;
 }
-button:disabled{
-  opacity:.6;
-}
 .msg{
+  margin-top:12px;
   text-align:center;
-  margin-top:10px;
   font-size:14px;
 }
-.error{color:red}
-.success{color:green}
-.info{color:#0f766e}
+.error{color:red;}
+.success{color:green;}
+.info{color:#0f766e;}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h2>Employee Signup</h2>
+  <h2>Signup Request</h2>
 
   <label>Full Name</label>
-  <input id="fullName" placeholder="Enter full name">
+  <input type="text" id="fullName" placeholder="Enter Full Name">
 
-  <label>Employee ID</label>
-  <input id="empId" placeholder="Enter employee ID">
+  <label>Emp ID</label>
+  <input type="text" id="empId" placeholder="Enter Employee ID">
 
   <label>Department</label>
-  <input id="department" placeholder="Department">
+  <input type="text" id="department" placeholder="Enter Department">
 
   <label>Designation</label>
-  <input id="designation" placeholder="Designation">
+  <input type="text" id="designation" placeholder="Enter Designation">
 
   <label>Mobile</label>
-  <input id="mobile" placeholder="Mobile number">
+  <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
 
-  <button id="btn" onclick="signup()">Submit</button>
+  <button onclick="submitSignup()">Submit Signup</button>
 
   <div id="msg" class="msg"></div>
 </div>
 
 <script>
-/* 🔗 YOUR APPS SCRIPT WEB APP URL */
+/* ✅ YOUR APPS SCRIPT WEB APP URL */
 const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbymLQ5JwOQE3-lebOVdptjzOf-BcW6aEaJwG7IT2cITP_bHKQ1bouognnEEbtJhAsMx/exec";
 
-async function signup(){
+function submitSignup(){
   const fullName = document.getElementById("fullName").value.trim();
   const empId = document.getElementById("empId").value.trim();
   const department = document.getElementById("department").value.trim();
   const designation = document.getElementById("designation").value.trim();
   const mobile = document.getElementById("mobile").value.trim();
   const msg = document.getElementById("msg");
-  const btn = document.getElementById("btn");
 
-  if(!fullName || !empId){
-    msg.innerHTML = "Full Name & Emp ID required";
+  if(!fullName || !empId || !department || !designation || !mobile){
+    msg.innerHTML = "All fields are required";
     msg.className = "msg error";
     return;
   }
 
-  btn.disabled = true;
   msg.innerHTML = "Submitting...";
   msg.className = "msg info";
 
-  try{
-    const res = await fetch(SCRIPT_URL,{
-      method:"POST",
-      body: JSON.stringify({
-        fullName,
-        empId,
-        department,
-        designation,
-        mobile
-      })
-    });
-
-    const r = await res.json();
-
-    if(r.status === "OK"){
-      msg.innerHTML = "Signup successful. Redirecting to login...";
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body: JSON.stringify({
+      fullName,
+      empId,
+      department,
+      designation,
+      mobile
+    })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.status === "OK"){
+      msg.innerHTML =
+        "Signup successful. Waiting for admin approval.";
       msg.className = "msg success";
 
       setTimeout(()=>{
-        location.href = "login.html";
+        window.location.href = "login.html";
       },1500);
     }else{
-      msg.innerHTML = "Error: " + r.status;
+      msg.innerHTML = "Error: " + res.status;
       msg.className = "msg error";
-      btn.disabled = false;
     }
-
-  }catch(e){
+  })
+  .catch(err=>{
+    console.error(err);
     msg.innerHTML = "Network error. Try again.";
     msg.className = "msg error";
-    btn.disabled = false;
-  }
+  });
 }
 </script>
 
