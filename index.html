@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -31,8 +31,6 @@ h2{
 label{
   font-size:14px;
   font-weight:bold;
-  margin-bottom:6px;
-  display:block;
 }
 input{
   width:100%;
@@ -40,7 +38,6 @@ input{
   margin-bottom:14px;
   border-radius:8px;
   border:1px solid #ccc;
-  font-size:15px;
 }
 button{
   width:100%;
@@ -52,27 +49,12 @@ button{
   font-size:16px;
   cursor:pointer;
 }
-button:hover{
-  opacity:.9;
-}
 .msg{
-  margin-top:12px;
-  text-align:center;
-  font-size:14px;
-}
-.error{color:red;}
-.success{color:green;}
-.info{color:#0f766e;}
-.link{
   text-align:center;
   margin-top:10px;
 }
-.link a{
-  color:#0f766e;
-  text-decoration:none;
-  font-size:14px;
-  font-weight:bold;
-}
+.error{color:red;}
+.success{color:green;}
 </style>
 </head>
 
@@ -82,82 +64,66 @@ button:hover{
   <h2>Signup Request</h2>
 
   <label>Full Name</label>
-  <input type="text" id="fullName" placeholder="Enter Full Name">
+  <input id="fullName">
 
   <label>Emp ID</label>
-  <input type="text" id="empId" placeholder="Enter Employee ID">
+  <input id="empId">
 
   <label>Department</label>
-  <input type="text" id="department" placeholder="Enter Department">
+  <input id="department">
 
   <label>Designation</label>
-  <input type="text" id="designation" placeholder="Enter Designation">
+  <input id="designation">
 
   <label>Mobile</label>
-  <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
+  <input id="mobile">
 
   <button onclick="submitSignup()">Submit Signup</button>
 
   <div id="msg" class="msg"></div>
 
-  <div class="link">
+  <div style="text-align:center;margin-top:8px;">
     <a href="login.html">Already have account? Login</a>
   </div>
 </div>
 
 <script>
-/* 🔴 APNA LATEST DEPLOYED WEB APP URL YAHAN PASTE KARO */
-const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
+const SCRIPT_URL = "PASTE_NEW_WEB_APP_URL_HERE";
 
 function submitSignup(){
-  const fullName = document.getElementById("fullName").value.trim();
-  const empId = document.getElementById("empId").value.trim();
-  const department = document.getElementById("department").value.trim();
-  const designation = document.getElementById("designation").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
   const msg = document.getElementById("msg");
 
-  if(!fullName || !empId || !department || !designation || !mobile){
-    msg.innerHTML = "All fields are required";
+  const data = {
+    fullName: fullName.value.trim(),
+    empId: empId.value.trim(),
+    department: department.value.trim(),
+    designation: designation.value.trim(),
+    mobile: mobile.value.trim()
+  };
+
+  if(Object.values(data).some(v=>!v)){
+    msg.innerHTML = "All fields required";
     msg.className = "msg error";
     return;
   }
 
-  msg.innerHTML = "Submitting request...";
-  msg.className = "msg info";
-
   fetch(SCRIPT_URL,{
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      action: "signup",
-      fullName,
-      empId,
-      department,
-      designation,
-      mobile,
-      time: new Date().toLocaleString()
-    })
+    body: JSON.stringify(data)
   })
-  .then(res => res.json())
-  .then(data => {
-    if(data.status === "success"){
-      msg.innerHTML =
-        "Signup submitted. Wait for admin approval.";
-      msg.className = "msg success";
-
-      setTimeout(()=>{
-        window.location.href = "login.html";
-      },2000);
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.status==="OK"){
+      msg.innerHTML="Signup successful. Wait for approval.";
+      msg.className="msg success";
     }else{
-      msg.innerHTML = data.message || "Signup failed";
-      msg.className = "msg error";
+      msg.innerHTML=res.message;
+      msg.className="msg error";
     }
   })
   .catch(()=>{
-    msg.innerHTML = "Network error. Please try again.";
-    msg.className = "msg error";
+    msg.innerHTML="Network error";
+    msg.className="msg error";
   });
 }
 </script>
