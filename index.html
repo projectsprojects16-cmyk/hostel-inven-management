@@ -55,16 +55,8 @@ button:disabled{
   margin-top:12px;
   font-size:14px;
 }
-.success{color:green;}
-.error{color:red;}
-a{
-  display:block;
-  text-align:center;
-  margin-top:10px;
-  color:#0f766e;
-  text-decoration:none;
-  font-weight:bold;
-}
+.success{ color:green; }
+.error{ color:red; }
 </style>
 </head>
 
@@ -91,8 +83,6 @@ a{
   <button id="btn" onclick="submitSignup()">Submit Signup</button>
 
   <div id="msg" class="msg"></div>
-
-  <a href="login.html">Already have account? Login</a>
 </div>
 
 <script>
@@ -101,7 +91,9 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4
 function submitSignup(){
   const btn = document.getElementById("btn");
   const msg = document.getElementById("msg");
-  msg.textContent = "";
+
+  msg.textContent = "Submitting...";
+  msg.className = "msg";
   btn.disabled = true;
 
   const data = new URLSearchParams();
@@ -113,23 +105,29 @@ function submitSignup(){
 
   fetch(SCRIPT_URL, {
     method: "POST",
-    body: data
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: data.toString()
   })
-  .then(r => r.json())
+  .then(res => res.json())
   .then(res => {
     if(res.status === "success"){
       msg.textContent = "Signup request submitted successfully ✔";
       msg.className = "msg success";
-      document.querySelector("form")?.reset();
-    }else{
-      throw res.message;
+
+      // clear inputs
+      document.querySelectorAll("input").forEach(i => i.value = "");
+    } else {
+      msg.textContent = "Error: " + res.message;
+      msg.className = "msg error";
     }
   })
   .catch(err => {
-    msg.textContent = "Error: " + err;
+    msg.textContent = "Request failed!";
     msg.className = "msg error";
   })
-  .finally(()=>{
+  .finally(() => {
     btn.disabled = false;
   });
 }
