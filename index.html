@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -31,6 +31,8 @@ h2{
 label{
   font-size:14px;
   font-weight:bold;
+  margin-bottom:6px;
+  display:block;
 }
 input{
   width:100%;
@@ -38,6 +40,7 @@ input{
   margin-bottom:14px;
   border-radius:8px;
   border:1px solid #ccc;
+  font-size:15px;
 }
 button{
   width:100%;
@@ -50,11 +53,13 @@ button{
   cursor:pointer;
 }
 .msg{
+  margin-top:12px;
   text-align:center;
-  margin-top:10px;
+  font-size:14px;
 }
 .error{color:red;}
 .success{color:green;}
+.info{color:#0f766e;}
 </style>
 </head>
 
@@ -81,49 +86,42 @@ button{
   <button onclick="submitSignup()">Submit Signup</button>
 
   <div id="msg" class="msg"></div>
-
-  <div style="text-align:center;margin-top:8px;">
-    <a href="login.html">Already have account? Login</a>
-  </div>
 </div>
 
 <script>
-const SCRIPT_URL = "PASTE_NEW_WEB_APP_URL_HERE";
+const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbxKCNSbwVB54NJZZdlUJbeaVASCRlq8o5b3Sn0PXPgHtm91CVOcpLGNehMJ3c3ANJvk/exec";
 
 function submitSignup(){
   const msg = document.getElementById("msg");
 
-  const data = {
-    fullName: fullName.value.trim(),
-    empId: empId.value.trim(),
-    department: department.value.trim(),
-    designation: designation.value.trim(),
-    mobile: mobile.value.trim()
-  };
+  const fd = new FormData();
+  fd.append("fullName", fullName.value);
+  fd.append("empId", empId.value);
+  fd.append("department", department.value);
+  fd.append("designation", designation.value);
+  fd.append("mobile", mobile.value);
 
-  if(Object.values(data).some(v=>!v)){
-    msg.innerHTML = "All fields required";
-    msg.className = "msg error";
-    return;
-  }
+  msg.innerHTML = "Submitting...";
+  msg.className = "msg info";
 
   fetch(SCRIPT_URL,{
     method:"POST",
-    body: JSON.stringify(data)
+    body: fd
   })
   .then(r=>r.json())
   .then(res=>{
-    if(res.status==="OK"){
-      msg.innerHTML="Signup successful. Wait for approval.";
-      msg.className="msg success";
+    if(res.status === "success"){
+      msg.innerHTML = "Signup successful. Waiting for approval.";
+      msg.className = "msg success";
     }else{
-      msg.innerHTML=res.message;
-      msg.className="msg error";
+      msg.innerHTML = "Error: " + res.message;
+      msg.className = "msg error";
     }
   })
   .catch(()=>{
-    msg.innerHTML="Network error";
-    msg.className="msg error";
+    msg.innerHTML = "Network error";
+    msg.className = "msg error";
   });
 }
 </script>
