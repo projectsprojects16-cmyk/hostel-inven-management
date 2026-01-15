@@ -1,65 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Signup – Hostel App</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background:#0f766e;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-.card{
-  background:#fff;
-  padding:25px;
-  width:360px;
-  border-radius:10px;
-  box-shadow:0 10px 30px rgba(0,0,0,.2);
-}
-h2{
-  text-align:center;
-  color:#0f766e;
-}
-label{
-  font-size:14px;
-  font-weight:bold;
-}
-input{
-  width:100%;
-  padding:10px;
-  margin:6px 0 14px;
-  border:1px solid #ccc;
-  border-radius:6px;
-}
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:6px;
-  background:#0f766e;
-  color:#fff;
-  font-size:16px;
-  cursor:pointer;
-}
-button:disabled{
-  opacity:.6;
-}
-.msg{
-  text-align:center;
-  margin-top:12px;
-  font-size:14px;
-}
-.success{ color:green; }
-.error{ color:red; }
-</style>
+  <meta charset="UTF-8">
+  <title>Signup – Hostel App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f766e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      padding: 25px;
+      width: 360px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    }
+    h2 {
+      text-align: center;
+      color: #0f766e;
+      margin-bottom: 20px;
+    }
+    label {
+      font-size: 14px;
+      margin-top: 10px;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+    #msg {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
 </head>
-
 <body>
 
 <div class="card">
@@ -72,69 +66,47 @@ button:disabled{
   <input id="empId" required>
 
   <label>Department</label>
-  <input id="department" required>
+  <input id="department">
 
   <label>Designation</label>
-  <input id="designation" required>
+  <input id="designation">
 
   <label>Mobile</label>
-  <input id="mobile" required>
+  <input id="mobile">
 
-  <button id="btn" onclick="submitSignup()">Submit Signup</button>
+  <button onclick="submitForm()">Submit Signup</button>
 
-  <div id="msg" class="msg"></div>
+  <div id="msg"></div>
 </div>
 
 <script>
-const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
-function submitSignup(){
-  const btn = document.getElementById("btn");
-  const msg = document.getElementById("msg");
+function submitForm() {
+  const params = new URLSearchParams();
+  params.append("fullName", document.getElementById("fullName").value);
+  params.append("empId", document.getElementById("empId").value);
+  params.append("department", document.getElementById("department").value);
+  params.append("designation", document.getElementById("designation").value);
+  params.append("mobile", document.getElementById("mobile").value);
 
-  msg.textContent = "Submitting...";
-  msg.className = "msg";
-  btn.disabled = true;
-
-  const data = new URLSearchParams();
-  data.append("fullName", fullName.value.trim());
-  data.append("empId", empId.value.trim());
-  data.append("department", department.value.trim());
-  data.append("designation", designation.value.trim());
-  data.append("mobile", mobile.value.trim());
-
-  fetch(SCRIPT_URL, {
+  fetch(API_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: data.toString()
+    body: params
   })
-  .then(r => r.text())               // 👈 IMPORTANT
-  .then(t => {
-    let res;
-    try {
-      res = JSON.parse(t);
-    } catch (e) {
-      throw "Invalid server response";
-    }
-
-    if(res.status === "success"){
-      msg.textContent = "Signup request submitted successfully ✔";
-      msg.className = "msg success";
-      document.querySelectorAll("input").forEach(i => i.value = "");
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      document.getElementById("msg").style.color = "green";
+      document.getElementById("msg").innerText = "Signup Successful ✔";
     } else {
-      msg.textContent = "Error: " + res.message;
-      msg.className = "msg error";
+      document.getElementById("msg").style.color = "red";
+      document.getElementById("msg").innerText = data.message;
     }
   })
   .catch(err => {
-    msg.textContent = "Error: " + err;
-    msg.className = "msg error";
-  })
-  .finally(() => {
-    btn.disabled = false;
+    document.getElementById("msg").style.color = "red";
+    document.getElementById("msg").innerText = err.toString();
   });
 }
 </script>
