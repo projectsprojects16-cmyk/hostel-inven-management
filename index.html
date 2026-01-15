@@ -1,170 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Signup – Hostel App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>Signup – Hostel App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f766e;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .card {
-      background: #fff;
-      width: 360px;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.2);
-    }
-
-    h2 {
-      text-align: center;
-      color: #0f766e;
-      margin-bottom: 20px;
-    }
-
-    label {
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0 14px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0f766e;
-      border: none;
-      color: #fff;
-      font-size: 15px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      background: #999;
-    }
-
-    .msg {
-      text-align: center;
-      margin-top: 12px;
-      font-size: 14px;
-    }
-
-    .error {
-      color: red;
-    }
-
-    .success {
-      color: green;
-    }
-
-    .login {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    .login a {
-      color: #0f766e;
-      text-decoration: none;
-      font-weight: bold;
-    }
-  </style>
+<style>
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#0f766e;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.card{
+  background:#fff;
+  padding:25px;
+  width:360px;
+  border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+h2{
+  text-align:center;
+  color:#0f766e;
+}
+label{
+  font-size:14px;
+  font-weight:bold;
+}
+input{
+  width:100%;
+  padding:10px;
+  margin:6px 0 14px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:6px;
+  background:#0f766e;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+}
+button:disabled{
+  opacity:.6;
+}
+.msg{
+  text-align:center;
+  margin-top:12px;
+  font-size:14px;
+}
+.success{color:green;}
+.error{color:red;}
+a{
+  display:block;
+  text-align:center;
+  margin-top:10px;
+  color:#0f766e;
+  text-decoration:none;
+  font-weight:bold;
+}
+</style>
 </head>
+
 <body>
 
-  <div class="card">
-    <h2>Signup Request</h2>
+<div class="card">
+  <h2>Signup Request</h2>
 
-    <form id="signupForm">
-      <label>Full Name</label>
-      <input type="text" id="fullName" required />
+  <label>Full Name</label>
+  <input id="fullName" required>
 
-      <label>Emp ID</label>
-      <input type="text" id="empId" required />
+  <label>Emp ID</label>
+  <input id="empId" required>
 
-      <label>Department</label>
-      <input type="text" id="department" required />
+  <label>Department</label>
+  <input id="department" required>
 
-      <label>Designation</label>
-      <input type="text" id="designation" required />
+  <label>Designation</label>
+  <input id="designation" required>
 
-      <label>Mobile</label>
-      <input type="text" id="mobile" required />
+  <label>Mobile</label>
+  <input id="mobile" required>
 
-      <button type="submit" id="btn">Submit Signup</button>
-    </form>
+  <button id="btn" onclick="submitSignup()">Submit Signup</button>
 
-    <div class="msg" id="msg"></div>
+  <div id="msg" class="msg"></div>
 
-    <div class="login">
-      Already have account? <a href="login.html">Login</a>
-    </div>
-  </div>
+  <a href="login.html">Already have account? Login</a>
+</div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
-document.getElementById("signupForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
-
+function submitSignup(){
   const btn = document.getElementById("btn");
   const msg = document.getElementById("msg");
-
+  msg.textContent = "";
   btn.disabled = true;
-  msg.textContent = "Submitting...";
-  msg.className = "msg";
 
-  const data = {
-    fullName: document.getElementById("fullName").value.trim(),
-    empId: document.getElementById("empId").value.trim(),
-    department: document.getElementById("department").value.trim(),
-    designation: document.getElementById("designation").value.trim(),
-    mobile: document.getElementById("mobile").value.trim()
-  };
+  const data = new URLSearchParams();
+  data.append("fullName", document.getElementById("fullName").value);
+  data.append("empId", document.getElementById("empId").value);
+  data.append("department", document.getElementById("department").value);
+  data.append("designation", document.getElementById("designation").value);
+  data.append("mobile", document.getElementById("mobile").value);
 
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-
-    const result = await res.json();
-
-    if (result.status === "success") {
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: data
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.status === "success"){
       msg.textContent = "Signup request submitted successfully ✔";
       msg.className = "msg success";
-      document.getElementById("signupForm").reset();
-    } else {
-      msg.textContent = "Error: " + result.message;
-      msg.className = "msg error";
+      document.querySelector("form")?.reset();
+    }else{
+      throw res.message;
     }
-
-  } catch (err) {
-    msg.textContent = "Network error. Please try again.";
+  })
+  .catch(err => {
+    msg.textContent = "Error: " + err;
     msg.className = "msg error";
-  }
-
-  btn.disabled = false;
-});
+  })
+  .finally(()=>{
+    btn.disabled = false;
+  });
+}
 </script>
 
 </body>
