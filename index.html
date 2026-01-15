@@ -60,6 +60,11 @@ button{
 .error{color:red;}
 .success{color:green;}
 .info{color:#0f766e;}
+a{
+  color:#0f766e;
+  text-decoration:none;
+  font-weight:bold;
+}
 </style>
 </head>
 
@@ -69,58 +74,80 @@ button{
   <h2>Signup Request</h2>
 
   <label>Full Name</label>
-  <input id="fullName">
+  <input type="text" id="fullName" placeholder="Enter Full Name">
 
   <label>Emp ID</label>
-  <input id="empId">
+  <input type="text" id="empId" placeholder="Enter Employee ID">
 
   <label>Department</label>
-  <input id="department">
+  <input type="text" id="department" placeholder="Enter Department">
 
   <label>Designation</label>
-  <input id="designation">
+  <input type="text" id="designation" placeholder="Enter Designation">
 
   <label>Mobile</label>
-  <input id="mobile">
+  <input type="tel" id="mobile" placeholder="03XXXXXXXXX">
 
   <button onclick="submitSignup()">Submit Signup</button>
 
   <div id="msg" class="msg"></div>
+
+  <div style="text-align:center;margin-top:10px;">
+    <a href="login.html">Already have account? Login</a>
+  </div>
 </div>
 
 <script>
+/* ✅ YOUR LIVE APPS SCRIPT URL */
 const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbxKCNSbwVB54NJZZdlUJbeaVASCRlq8o5b3Sn0PXPgHtm91CVOcpLGNehMJ3c3ANJvk/exec";
+"https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
 function submitSignup(){
   const msg = document.getElementById("msg");
 
-  const fd = new FormData();
-  fd.append("fullName", fullName.value);
-  fd.append("empId", empId.value);
-  fd.append("department", department.value);
-  fd.append("designation", designation.value);
-  fd.append("mobile", mobile.value);
+  const fullName = document.getElementById("fullName").value.trim();
+  const empId = document.getElementById("empId").value.trim();
+  const department = document.getElementById("department").value.trim();
+  const designation = document.getElementById("designation").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+
+  if(!fullName || !empId || !department || !designation || !mobile){
+    msg.innerHTML = "All fields are required";
+    msg.className = "msg error";
+    return;
+  }
 
   msg.innerHTML = "Submitting...";
   msg.className = "msg info";
 
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    body: fd
+  const formData = new FormData();
+  formData.append("fullName", fullName);
+  formData.append("empId", empId);
+  formData.append("department", department);
+  formData.append("designation", designation);
+  formData.append("mobile", mobile);
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: formData
   })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res.status === "success"){
-      msg.innerHTML = "Signup successful. Waiting for approval.";
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === "success"){
+      msg.innerHTML = "Signup successful. Waiting for admin approval.";
       msg.className = "msg success";
+
+      setTimeout(()=>{
+        window.location.href = "login.html";
+      },1500);
     }else{
-      msg.innerHTML = "Error: " + res.message;
+      msg.innerHTML = "Error: " + (data.message || "Unknown error");
       msg.className = "msg error";
     }
   })
-  .catch(()=>{
-    msg.innerHTML = "Network error";
+  .catch(err=>{
+    console.error(err);
+    msg.innerHTML = "Network error. Please try again.";
     msg.className = "msg error";
   });
 }
