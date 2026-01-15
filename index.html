@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Signup – Hostel App</title>
   <style>
     body {
@@ -16,42 +16,35 @@
     .card {
       background: #fff;
       padding: 25px;
-      width: 360px;
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+      border-radius: 8px;
+      width: 320px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.2);
     }
     h2 {
       text-align: center;
       color: #0f766e;
-      margin-bottom: 20px;
-    }
-    label {
-      font-size: 14px;
-      margin-top: 10px;
-      display: block;
     }
     input {
       width: 100%;
       padding: 8px;
-      margin-top: 4px;
-      box-sizing: border-box;
+      margin: 6px 0 12px;
     }
     button {
-      margin-top: 15px;
       width: 100%;
       padding: 10px;
       background: #0f766e;
-      color: white;
+      color: #fff;
       border: none;
       cursor: pointer;
-      font-size: 16px;
-      border-radius: 6px;
+      font-size: 15px;
     }
-    #msg {
-      margin-top: 12px;
+    .msg {
+      margin-top: 10px;
       text-align: center;
-      font-size: 14px;
+      font-weight: bold;
     }
+    .error { color: red; }
+    .success { color: green; }
   </style>
 </head>
 <body>
@@ -59,54 +52,45 @@
 <div class="card">
   <h2>Signup Request</h2>
 
-  <label>Full Name</label>
-  <input id="fullName" required>
-
-  <label>Emp ID</label>
-  <input id="empId" required>
-
-  <label>Department</label>
-  <input id="department">
-
-  <label>Designation</label>
-  <input id="designation">
-
-  <label>Mobile</label>
-  <input id="mobile">
+  <input id="fullName" placeholder="Full Name" />
+  <input id="empId" placeholder="Emp ID" />
+  <input id="department" placeholder="Department" />
+  <input id="designation" placeholder="Designation" />
+  <input id="mobile" placeholder="Mobile" />
 
   <button onclick="submitForm()">Submit Signup</button>
-
-  <div id="msg"></div>
+  <div id="msg" class="msg"></div>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
 function submitForm() {
-  const params = new URLSearchParams();
-  params.append("fullName", document.getElementById("fullName").value);
-  params.append("empId", document.getElementById("empId").value);
-  params.append("department", document.getElementById("department").value);
-  params.append("designation", document.getElementById("designation").value);
-  params.append("mobile", document.getElementById("mobile").value);
+  const data = new URLSearchParams();
+  data.append("fullName", document.getElementById("fullName").value);
+  data.append("empId", document.getElementById("empId").value);
+  data.append("department", document.getElementById("department").value);
+  data.append("designation", document.getElementById("designation").value);
+  data.append("mobile", document.getElementById("mobile").value);
 
-  fetch(API_URL, {
+  fetch(SCRIPT_URL, {
     method: "POST",
-    body: params
+    body: data
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === "success") {
-      document.getElementById("msg").style.color = "green";
-      document.getElementById("msg").innerText = "Signup Successful ✔";
+  .then(res => res.text())
+  .then(text => {
+    const res = JSON.parse(text);
+    if (res.status === "success") {
+      document.getElementById("msg").innerHTML =
+        "<span class='success'>Signup Successful ✅</span>";
     } else {
-      document.getElementById("msg").style.color = "red";
-      document.getElementById("msg").innerText = data.message;
+      document.getElementById("msg").innerHTML =
+        "<span class='error'>" + res.message + "</span>";
     }
   })
   .catch(err => {
-    document.getElementById("msg").style.color = "red";
-    document.getElementById("msg").innerText = err.toString();
+    document.getElementById("msg").innerHTML =
+      "<span class='error'>" + err + "</span>";
   });
 }
 </script>
