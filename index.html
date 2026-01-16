@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Signup – Hostel App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f766e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0f766e;
+      font-family: Arial, sans-serif;
     }
 
     .card {
       background: #fff;
-      padding: 30px;
-      width: 320px;
+      padding: 25px;
+      width: 340px;
       border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
 
     h2 {
@@ -33,29 +33,29 @@
     input {
       width: 100%;
       padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
+      margin-bottom: 10px;
       border-radius: 4px;
+      border: 1px solid #ccc;
       font-size: 14px;
     }
 
     button {
       width: 100%;
-      padding: 10px;
+      padding: 11px;
       background: #0f766e;
       color: #fff;
       border: none;
-      border-radius: 4px;
       font-size: 15px;
+      border-radius: 4px;
       cursor: pointer;
     }
 
     button:disabled {
-      opacity: 0.6;
+      background: #999;
       cursor: not-allowed;
     }
 
-    .msg {
+    #msg {
       margin-top: 12px;
       text-align: center;
       font-size: 14px;
@@ -65,64 +65,74 @@
     .error { color: red; }
   </style>
 </head>
-
 <body>
 
   <div class="card">
     <h2>Signup Request</h2>
 
     <form id="signupForm">
-      <input id="fullName" placeholder="Full Name" required />
-      <input id="empId" placeholder="Emp ID" required />
-      <input id="department" placeholder="Department" />
-      <input id="designation" placeholder="Designation" />
-      <input id="mobile" placeholder="Mobile" />
+      <input type="text" name="fullName" placeholder="Full Name" required>
+      <input type="text" name="empId" placeholder="Emp ID" required>
+      <input type="text" name="department" placeholder="Department">
+      <input type="text" name="designation" placeholder="Designation">
+      <input type="text" name="mobile" placeholder="Mobile">
 
-      <button type="submit" id="btn">Submit Signup</button>
+      <button type="submit">Submit Signup</button>
     </form>
 
-    <div id="msg" class="msg"></div>
+    <div id="msg"></div>
   </div>
 
 <script>
-  const ENDPOINT = "PASTE_YOUR_WEBAPP_URL_HERE";
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
-  const form = document.getElementById("signupForm");
-  const msg  = document.getElementById("msg");
-  const btn  = document.getElementById("btn");
+document.getElementById("signupForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector("button");
+  const msg = document.getElementById("msg");
 
-    msg.textContent = "";
-    btn.disabled = true;
+  msg.textContent = "";
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
 
-    const data = new URLSearchParams();
-    data.append("fullName", document.getElementById("fullName").value);
-    data.append("empId", document.getElementById("empId").value);
-    data.append("department", document.getElementById("department").value);
-    data.append("designation", document.getElementById("designation").value);
-    data.append("mobile", document.getElementById("mobile").value);
+  // 🔑 VERY IMPORTANT: form-encoded data
+  const formData = new URLSearchParams(new FormData(form));
 
-    fetch(ENDPOINT, {
+  try {
+    const res = await fetch(SCRIPT_URL, {
       method: "POST",
-      body: data
-    })
-    .then(res => res.text())   // 🔥 JSON ❌ — TEXT ✅
-    .then(() => {
-      msg.textContent = "Signup submitted successfully";
-      msg.className = "msg success";
-      form.reset();
-    })
-    .catch(err => {
-      console.error(err);
-      msg.textContent = "Signup failed";
-      msg.className = "msg error";
-    })
-    .finally(() => {
-      btn.disabled = false;
+      body: formData
     });
-  });
+
+    const text = await res.text();
+    let data = {};
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("Invalid response from server");
+    }
+
+    if (data.status === "success") {
+      msg.textContent = "Signup submitted successfully";
+      msg.className = "success";
+      form.reset();
+    } else {
+      msg.textContent = data.message || "Error occurred";
+      msg.className = "error";
+    }
+
+  } catch (err) {
+    msg.textContent = err.message;
+    msg.className = "error";
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Submit Signup";
+});
 </script>
 
 </body>
