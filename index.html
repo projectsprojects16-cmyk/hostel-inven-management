@@ -1,130 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Signup – Hostel App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <meta charset="UTF-8">
+  <title>Hostel Signup</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f766e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .card {
-      background: #fff;
-      padding: 30px;
-      width: 320px;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    h2 {
-      text-align: center;
-      color: #0f766e;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #0f766e;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .msg {
-      margin-top: 12px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .success { color: green; }
-    .error { color: red; }
+    body { font-family: Arial; background:#f4f4f4; }
+    .box { width:400px; margin:50px auto; background:#fff; padding:20px; border-radius:8px; }
+    input, button { width:100%; padding:10px; margin:8px 0; }
+    button { background:#28a745; color:#fff; border:none; cursor:pointer; }
+    button:hover { background:#218838; }
+    #msg { margin-top:10px; font-weight:bold; }
   </style>
 </head>
-
 <body>
 
-  <div class="card">
-    <h2>Signup Request</h2>
+<div class="box">
+  <h2>Signup – Hostel App</h2>
 
-    <form id="signupForm">
-      <input id="fullName" placeholder="Full Name" required />
-      <input id="empId" placeholder="Emp ID" required />
-      <input id="department" placeholder="Department" />
-      <input id="designation" placeholder="Designation" />
-      <input id="mobile" placeholder="Mobile" />
+  <input id="fullName" placeholder="Full Name" required>
+  <input id="empId" placeholder="Emp ID" required>
+  <input id="department" placeholder="Department">
+  <input id="designation" placeholder="Designation">
+  <input id="mobile" placeholder="Mobile">
 
-      <button type="submit" id="btn">Submit Signup</button>
-    </form>
+  <button onclick="submitForm()">Submit</button>
 
-    <div id="msg" class="msg"></div>
-  </div>
+  <div id="msg"></div>
+</div>
 
 <script>
-  // ✅ YOUR LIVE WEB APP URL
-  const ENDPOINT = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
-  const form = document.getElementById("signupForm");
-  const msg  = document.getElementById("msg");
-  const btn  = document.getElementById("btn");
+function submitForm() {
+  const data = new URLSearchParams();
+  data.append("fullName", document.getElementById("fullName").value);
+  data.append("empId", document.getElementById("empId").value);
+  data.append("department", document.getElementById("department").value);
+  data.append("designation", document.getElementById("designation").value);
+  data.append("mobile", document.getElementById("mobile").value);
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    msg.textContent = "";
-    msg.className = "msg";
-    btn.disabled = true;
-
-    const data = new URLSearchParams();
-    data.append("fullName", document.getElementById("fullName").value);
-    data.append("empId", document.getElementById("empId").value);
-    data.append("department", document.getElementById("department").value);
-    data.append("designation", document.getElementById("designation").value);
-    data.append("mobile", document.getElementById("mobile").value);
-
-    fetch(ENDPOINT, {
-      method: "POST",
-      body: data
-    })
-    .then(res => res.text()) // 👈 TEXT ONLY (NO JSON)
-    .then(() => {
-      msg.textContent = "Signup submitted successfully";
-      msg.classList.add("success");
-      form.reset();
-    })
-    .catch(err => {
-      console.error(err);
-      msg.textContent = "Signup failed";
-      msg.classList.add("error");
-    })
-    .finally(() => {
-      btn.disabled = false;
-    });
+  fetch(API_URL, {
+    method: "POST",
+    body: data
+  })
+  .then(res => res.json())
+  .then(res => {
+    document.getElementById("msg").innerText =
+      res.status === "success" ? "✅ Signup Saved" : "❌ Error: " + res.message;
+  })
+  .catch(err => {
+    document.getElementById("msg").innerText = "❌ Network Error";
   });
+}
 </script>
 
 </body>
