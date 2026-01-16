@@ -85,7 +85,8 @@
   </div>
 
 <script>
-  const ENDPOINT = "PASTE_YOUR_WEBAPP_URL_HERE";
+  // ✅ YOUR LIVE WEB APP URL
+  const ENDPOINT = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
   const form = document.getElementById("signupForm");
   const msg  = document.getElementById("msg");
@@ -95,6 +96,7 @@
     e.preventDefault();
 
     msg.textContent = "";
+    msg.className = "msg";
     btn.disabled = true;
 
     const data = new URLSearchParams();
@@ -108,16 +110,16 @@
       method: "POST",
       body: data
     })
-    .then(res => res.text())   // 🔥 JSON ❌ — TEXT ✅
+    .then(res => res.text()) // 👈 TEXT ONLY (NO JSON)
     .then(() => {
       msg.textContent = "Signup submitted successfully";
-      msg.className = "msg success";
+      msg.classList.add("success");
       form.reset();
     })
     .catch(err => {
       console.error(err);
       msg.textContent = "Signup failed";
-      msg.className = "msg error";
+      msg.classList.add("error");
     })
     .finally(() => {
       btn.disabled = false;
