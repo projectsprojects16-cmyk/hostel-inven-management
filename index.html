@@ -9,28 +9,40 @@
 body{
   margin:0;
   font-family:Arial,Helvetica,sans-serif;
-  background:#f1f5f9
+  background:#f1f5f9;
 }
-.container{
-  max-width:500px;
-  margin:30px auto;
+.wrapper{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.card{
+  width:100%;
+  max-width:420px;
   background:#fff;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 10px 25px rgba(0,0,0,.12)
+  padding:25px;
+  border-radius:14px;
+  box-shadow:0 15px 30px rgba(0,0,0,.15);
 }
-h2{text-align:center;color:#0f766e}
+h2{
+  text-align:center;
+  color:#0f766e;
+  margin-bottom:15px;
+}
 label{
   display:block;
   margin-top:12px;
-  font-weight:bold
+  font-weight:bold;
+  font-size:14px;
 }
 input,select{
   width:100%;
   padding:10px;
   margin-top:6px;
   border-radius:6px;
-  border:1px solid #ccc
+  border:1px solid #ccc;
+  font-size:14px;
 }
 button{
   width:100%;
@@ -41,74 +53,69 @@ button{
   border:none;
   border-radius:8px;
   font-size:16px;
-  cursor:pointer
+  cursor:pointer;
 }
 button:disabled{
-  background:#94a3b8
+  background:#94a3b8;
+  cursor:not-allowed;
 }
-.success{
+.msg{
   display:none;
-  background:#16a34a;
-  color:#fff;
   padding:10px;
   border-radius:8px;
   text-align:center;
-  margin-bottom:15px
+  font-weight:bold;
+  margin-bottom:12px;
 }
-.error{
-  display:none;
-  background:#dc2626;
-  color:#fff;
-  padding:10px;
-  border-radius:8px;
-  text-align:center;
-  margin-bottom:15px
-}
+.success{background:#16a34a;color:#fff;}
+.error{background:#dc2626;color:#fff;}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="wrapper">
+  <div class="card">
 
-<h2>Hostel Signup</h2>
+    <h2>Hostel Signup</h2>
 
-<div id="success" class="success">Signup submitted successfully</div>
-<div id="error" class="error">Something went wrong</div>
+    <div id="success" class="msg success">Signup submitted successfully</div>
+    <div id="error" class="msg error">Something went wrong</div>
 
-<label>Employee ID</label>
-<input id="empId" required>
+    <label>Employee ID</label>
+    <input id="empId" placeholder="Enter Employee ID">
 
-<label>Full Name</label>
-<input id="fullName" required>
+    <label>Full Name</label>
+    <input id="fullName" placeholder="Enter Full Name">
 
-<label>Email</label>
-<input id="email" type="email" required>
+    <label>Email</label>
+    <input id="email" placeholder="Enter Email">
 
-<label>Mobile Number</label>
-<input id="phone" required>
+    <label>Mobile Number</label>
+    <input id="phone" placeholder="Enter Mobile Number">
 
-<label>Role</label>
-<select id="role" required>
-  <option value="">Select Role</option>
-  <option>Employee</option>
-  <option>Supervisor</option>
-  <option>Manager</option>
-</select>
+    <label>Role</label>
+    <select id="role">
+      <option value="">Select Role</option>
+      <option>Employee</option>
+      <option>Supervisor</option>
+      <option>Manager</option>
+    </select>
 
-<label>Hostel</label>
-<select id="hostel" required>
-  <option value="">Select Hostel</option>
-  <option>Vigo</option>
-  <option>STPL</option>
-  <option>Champion</option>
-  <option>Saddiq</option>
-  <option>Colony</option>
-  <option>Murree</option>
-</select>
+    <label>Hostel</label>
+    <select id="hostel">
+      <option value="">Select Hostel</option>
+      <option>Vigo</option>
+      <option>STPL</option>
+      <option>Champion</option>
+      <option>Saddiq</option>
+      <option>Colony</option>
+      <option>Murree</option>
+    </select>
 
-<button id="submitBtn" onclick="submitForm()">Submit</button>
+    <button id="submitBtn" onclick="submitForm()">Submit</button>
 
+  </div>
 </div>
 
 <script>
@@ -116,50 +123,55 @@ const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbybjK1iNW6LN_GHvYVe8r9sNrv_VDlaXaEWUTR_4dossw_XbKiJqlj-42dMfNLHfBz-/exec";
 
 async function submitForm(){
-  const btn=document.getElementById("submitBtn");
-  const success=document.getElementById("success");
-  const error=document.getElementById("error");
+  const btn = document.getElementById("submitBtn");
+  const success = document.getElementById("success");
+  const error = document.getElementById("error");
 
-  success.style.display="none";
-  error.style.display="none";
+  success.style.display = "none";
+  error.style.display = "none";
 
-  const data={
-    empId:empId.value.trim(),
-    fullName:fullName.value.trim(),
-    email:email.value.trim(),
-    phone:phone.value.trim(),
-    role:role.value,
-    hostel:hostel.value,
-    time:new Date().toISOString()
+  const data = {
+    empId: empId.value.trim(),
+    fullName: fullName.value.trim(),
+    email: email.value.trim(),
+    phone: phone.value.trim(),
+    role: role.value,
+    hostel: hostel.value
   };
 
-  if(Object.values(data).some(v=>!v)){
+  // Basic validation
+  if (!data.empId || !data.fullName || !data.email || !data.phone || !data.role || !data.hostel) {
     alert("Please fill all fields");
     return;
   }
 
-  btn.disabled=true;
+  btn.disabled = true;
 
-  try{
-    const res=await fetch(SCRIPT_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(data)
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(data)   // ⚠️ no headers (CORS safe)
     });
 
-    const result=await res.json();
+    const text = await res.text();
 
-    if(result.success){
-      success.style.display="block";
-      document.querySelector("form")?.reset();
-    }else{
-      error.style.display="block";
+    if (text.includes("SUCCESS")) {
+      success.style.display = "block";
+      empId.value = "";
+      fullName.value = "";
+      email.value = "";
+      phone.value = "";
+      role.value = "";
+      hostel.value = "";
+    } else {
+      error.style.display = "block";
     }
-  }catch(e){
-    error.style.display="block";
+
+  } catch (e) {
+    error.style.display = "block";
   }
 
-  btn.disabled=false;
+  btn.disabled = false;
 }
 </script>
 
