@@ -1,130 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Signup – Hostel App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f766e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0f766e;
+      font-family: Arial, sans-serif;
     }
-
     .card {
       background: #fff;
       padding: 30px;
       width: 320px;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    h2 {
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
       text-align: center;
-      color: #0f766e;
+    }
+    h2 {
       margin-bottom: 20px;
+      color: #0f766e;
     }
-
-    input {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 12px;
+      margin: 6px 0;
+      border-radius: 5px;
       border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
     }
-
     button {
-      width: 100%;
-      padding: 10px;
       background: #0f766e;
       color: #fff;
       border: none;
-      border-radius: 4px;
-      font-size: 15px;
       cursor: pointer;
+      font-size: 15px;
     }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    button:hover {
+      background: #115e59;
     }
-
-    .msg {
-      margin-top: 12px;
-      text-align: center;
+    #msg {
+      margin-top: 10px;
       font-size: 14px;
     }
-
-    .success { color: green; }
-    .error { color: red; }
   </style>
 </head>
-
 <body>
 
   <div class="card">
     <h2>Signup Request</h2>
 
     <form id="signupForm">
-      <input id="fullName" placeholder="Full Name" required />
-      <input id="empId" placeholder="Emp ID" required />
-      <input id="department" placeholder="Department" />
-      <input id="designation" placeholder="Designation" />
-      <input id="mobile" placeholder="Mobile" />
-
-      <button type="submit" id="btn">Submit Signup</button>
+      <input name="fullName" placeholder="Full Name" required>
+      <input name="empId" placeholder="Emp ID" required>
+      <input name="department" placeholder="Department">
+      <input name="designation" placeholder="Designation">
+      <input name="mobile" placeholder="Mobile">
+      <button type="submit">Submit Signup</button>
     </form>
 
-    <div id="msg" class="msg"></div>
+    <div id="msg"></div>
   </div>
 
 <script>
-  // ✅ YOUR LIVE WEB APP URL
-  const ENDPOINT = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
-  const form = document.getElementById("signupForm");
-  const msg  = document.getElementById("msg");
-  const btn  = document.getElementById("btn");
+document.getElementById("signupForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
+  const msg = document.getElementById("msg");
+  msg.style.color = "black";
+  msg.innerText = "Submitting...";
 
-    msg.textContent = "";
-    msg.className = "msg";
-    btn.disabled = true;
+  const formData = new FormData(e.target);
 
-    const data = new URLSearchParams();
-    data.append("fullName", document.getElementById("fullName").value);
-    data.append("empId", document.getElementById("empId").value);
-    data.append("department", document.getElementById("department").value);
-    data.append("designation", document.getElementById("designation").value);
-    data.append("mobile", document.getElementById("mobile").value);
-
-    fetch(ENDPOINT, {
+  try {
+    const res = await fetch(SCRIPT_URL, {
       method: "POST",
-      body: data
-    })
-    .then(res => res.text()) // 👈 TEXT ONLY (NO JSON)
-    .then(() => {
-      msg.textContent = "Signup submitted successfully";
-      msg.classList.add("success");
-      form.reset();
-    })
-    .catch(err => {
-      console.error(err);
-      msg.textContent = "Signup failed";
-      msg.classList.add("error");
-    })
-    .finally(() => {
-      btn.disabled = false;
+      body: formData
     });
-  });
+
+    const text = await res.text();   // 🔥 IMPORTANT
+    const data = JSON.parse(text);
+
+    if (data.status === "success") {
+      msg.style.color = "green";
+      msg.innerText = "Signup submitted successfully";
+      e.target.reset();
+    } else {
+      msg.style.color = "red";
+      msg.innerText = data.message || "Error occurred";
+    }
+
+  } catch (err) {
+    msg.style.color = "red";
+    msg.innerText = err.toString();
+  }
+});
 </script>
 
 </body>
