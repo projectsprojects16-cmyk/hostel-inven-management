@@ -1,138 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Signup – Hostel App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Hostel Signup</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #0f766e;
-      font-family: Arial, sans-serif;
-    }
-
-    .card {
-      background: #fff;
-      padding: 25px;
-      width: 340px;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    h2 {
-      text-align: center;
-      color: #0f766e;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-
-    button {
-      width: 100%;
-      padding: 11px;
-      background: #0f766e;
-      color: #fff;
-      border: none;
-      font-size: 15px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
-
-    #msg {
-      margin-top: 12px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .success { color: green; }
-    .error { color: red; }
-  </style>
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f1f5f9
+}
+.container{
+  max-width:500px;
+  margin:30px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12)
+}
+h2{text-align:center;color:#0f766e}
+label{
+  display:block;
+  margin-top:12px;
+  font-weight:bold
+}
+input,select{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:6px;
+  border:1px solid #ccc
+}
+button{
+  width:100%;
+  margin-top:20px;
+  padding:12px;
+  background:#0f766e;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer
+}
+button:disabled{
+  background:#94a3b8
+}
+.success{
+  display:none;
+  background:#16a34a;
+  color:#fff;
+  padding:10px;
+  border-radius:8px;
+  text-align:center;
+  margin-bottom:15px
+}
+.error{
+  display:none;
+  background:#dc2626;
+  color:#fff;
+  padding:10px;
+  border-radius:8px;
+  text-align:center;
+  margin-bottom:15px
+}
+</style>
 </head>
+
 <body>
 
-  <div class="card">
-    <h2>Signup Request</h2>
+<div class="container">
 
-    <form id="signupForm">
-      <input type="text" name="fullName" placeholder="Full Name" required>
-      <input type="text" name="empId" placeholder="Emp ID" required>
-      <input type="text" name="department" placeholder="Department">
-      <input type="text" name="designation" placeholder="Designation">
-      <input type="text" name="mobile" placeholder="Mobile">
+<h2>Hostel Signup</h2>
 
-      <button type="submit">Submit Signup</button>
-    </form>
+<div id="success" class="success">Signup submitted successfully</div>
+<div id="error" class="error">Something went wrong</div>
 
-    <div id="msg"></div>
-  </div>
+<label>Employee ID</label>
+<input id="empId" required>
+
+<label>Full Name</label>
+<input id="fullName" required>
+
+<label>Email</label>
+<input id="email" type="email" required>
+
+<label>Mobile Number</label>
+<input id="phone" required>
+
+<label>Role</label>
+<select id="role" required>
+  <option value="">Select Role</option>
+  <option>Employee</option>
+  <option>Supervisor</option>
+  <option>Manager</option>
+</select>
+
+<label>Hostel</label>
+<select id="hostel" required>
+  <option value="">Select Hostel</option>
+  <option>Vigo</option>
+  <option>STPL</option>
+  <option>Champion</option>
+  <option>Saddiq</option>
+  <option>Colony</option>
+  <option>Murree</option>
+</select>
+
+<button id="submitBtn" onclick="submitForm()">Submit</button>
+
+</div>
 
 <script>
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
+"https://script.google.com/macros/s/AKfycbybjK1iNW6LN_GHvYVe8r9sNrv_VDlaXaEWUTR_4dossw_XbKiJqlj-42dMfNLHfBz-/exec";
 
-document.getElementById("signupForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
+async function submitForm(){
+  const btn=document.getElementById("submitBtn");
+  const success=document.getElementById("success");
+  const error=document.getElementById("error");
 
-  const form = e.target;
-  const btn = form.querySelector("button");
-  const msg = document.getElementById("msg");
+  success.style.display="none";
+  error.style.display="none";
 
-  msg.textContent = "";
-  btn.disabled = true;
-  btn.textContent = "Submitting...";
+  const data={
+    empId:empId.value.trim(),
+    fullName:fullName.value.trim(),
+    email:email.value.trim(),
+    phone:phone.value.trim(),
+    role:role.value,
+    hostel:hostel.value,
+    time:new Date().toISOString()
+  };
 
-  // 🔑 VERY IMPORTANT: form-encoded data
-  const formData = new URLSearchParams(new FormData(form));
-
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: formData
-    });
-
-    const text = await res.text();
-    let data = {};
-
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("Invalid response from server");
-    }
-
-    if (data.status === "success") {
-      msg.textContent = "Signup submitted successfully";
-      msg.className = "success";
-      form.reset();
-    } else {
-      msg.textContent = data.message || "Error occurred";
-      msg.className = "error";
-    }
-
-  } catch (err) {
-    msg.textContent = err.message;
-    msg.className = "error";
+  if(Object.values(data).some(v=>!v)){
+    alert("Please fill all fields");
+    return;
   }
 
-  btn.disabled = false;
-  btn.textContent = "Submit Signup";
-});
+  btn.disabled=true;
+
+  try{
+    const res=await fetch(SCRIPT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(data)
+    });
+
+    const result=await res.json();
+
+    if(result.success){
+      success.style.display="block";
+      document.querySelector("form")?.reset();
+    }else{
+      error.style.display="block";
+    }
+  }catch(e){
+    error.style.display="block";
+  }
+
+  btn.disabled=false;
+}
 </script>
 
 </body>
