@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Signup – Hostel App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       margin: 0;
@@ -13,39 +15,54 @@
       background: #0f766e;
       font-family: Arial, sans-serif;
     }
+
     .card {
       background: #fff;
-      padding: 30px;
-      width: 320px;
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.2);
-      text-align: center;
+      padding: 25px;
+      width: 340px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
+
     h2 {
-      margin-bottom: 20px;
+      text-align: center;
       color: #0f766e;
+      margin-bottom: 20px;
     }
-    input, button {
+
+    input {
       width: 100%;
       padding: 10px;
-      margin: 6px 0;
-      border-radius: 5px;
+      margin-bottom: 10px;
+      border-radius: 4px;
       border: 1px solid #ccc;
+      font-size: 14px;
     }
+
     button {
+      width: 100%;
+      padding: 11px;
       background: #0f766e;
       color: #fff;
       border: none;
-      cursor: pointer;
       font-size: 15px;
+      border-radius: 4px;
+      cursor: pointer;
     }
-    button:hover {
-      background: #115e59;
+
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
     }
+
     #msg {
-      margin-top: 10px;
+      margin-top: 12px;
+      text-align: center;
       font-size: 14px;
     }
+
+    .success { color: green; }
+    .error { color: red; }
   </style>
 </head>
 <body>
@@ -54,11 +71,12 @@
     <h2>Signup Request</h2>
 
     <form id="signupForm">
-      <input name="fullName" placeholder="Full Name" required>
-      <input name="empId" placeholder="Emp ID" required>
-      <input name="department" placeholder="Department">
-      <input name="designation" placeholder="Designation">
-      <input name="mobile" placeholder="Mobile">
+      <input type="text" name="fullName" placeholder="Full Name" required>
+      <input type="text" name="empId" placeholder="Emp ID" required>
+      <input type="text" name="department" placeholder="Department">
+      <input type="text" name="designation" placeholder="Designation">
+      <input type="text" name="mobile" placeholder="Mobile">
+
       <button type="submit">Submit Signup</button>
     </form>
 
@@ -66,16 +84,22 @@
   </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbw2JungXZ0NIP0lfgBM4v4-HK7OWBHPdm_qcPKHZ2G1ceLRUeZNyGhkqNCXZVooeyK9tw/exec";
 
-document.getElementById("signupForm").addEventListener("submit", async (e) => {
+document.getElementById("signupForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
+  const form = e.target;
+  const btn = form.querySelector("button");
   const msg = document.getElementById("msg");
-  msg.style.color = "black";
-  msg.innerText = "Submitting...";
 
-  const formData = new FormData(e.target);
+  msg.textContent = "";
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+
+  // 🔑 VERY IMPORTANT: form-encoded data
+  const formData = new URLSearchParams(new FormData(form));
 
   try {
     const res = await fetch(SCRIPT_URL, {
@@ -83,22 +107,31 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
       body: formData
     });
 
-    const text = await res.text();   // 🔥 IMPORTANT
-    const data = JSON.parse(text);
+    const text = await res.text();
+    let data = {};
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("Invalid response from server");
+    }
 
     if (data.status === "success") {
-      msg.style.color = "green";
-      msg.innerText = "Signup submitted successfully";
-      e.target.reset();
+      msg.textContent = "Signup submitted successfully";
+      msg.className = "success";
+      form.reset();
     } else {
-      msg.style.color = "red";
-      msg.innerText = data.message || "Error occurred";
+      msg.textContent = data.message || "Error occurred";
+      msg.className = "error";
     }
 
   } catch (err) {
-    msg.style.color = "red";
-    msg.innerText = err.toString();
+    msg.textContent = err.message;
+    msg.className = "error";
   }
+
+  btn.disabled = false;
+  btn.textContent = "Submit Signup";
 });
 </script>
 
